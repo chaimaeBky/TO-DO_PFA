@@ -3,12 +3,13 @@ import { toast, ToastContainer } from 'react-toastify';
 import user from '../assets/images/user2.png';
 import backGroundCloud from '../assets/images/backGroundCloud.png';
 import star from '../assets/images/star.png';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-const Register = ({ onRegister }) => {
+const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -34,7 +35,7 @@ const Register = ({ onRegister }) => {
       const data = await response.json();
       if (response.ok) {  // Check if response is successful
         toast.success(data.message || "Registration successful!");
-        onRegister?.(); 
+        navigate('/home');
       } else {
         toast.error(data.error || 'Something went wrong.');
       }
@@ -43,12 +44,11 @@ const Register = ({ onRegister }) => {
     }
   };
   
-  
   return (
-    <div className="min-h-screen flex justify-center items-center relative bg-gray-100 overflow-hidden px-4">
-      {/* Cloud Background */}
-      <div className="cloud-background absolute top-0 left-0 w-full h-full z-0 pointer-events-none">
-        {[...Array(10)].map((_, index) => (
+    <div className="min-h-screen flex justify-center items-center p-4 relative">
+      {/* Background Clouds */}
+      <div className="cloud-background">
+        {[...Array(15)].map((_, index) => (
           <img
             key={index}
             src={backGroundCloud}
@@ -56,7 +56,9 @@ const Register = ({ onRegister }) => {
             className={`cloud cloud${index + 1}`}
           />
         ))}
-        {[...Array(10)].map((_, index) => (
+
+        {/* Stars */}
+        {[...Array(15)].map((_, index) => (
           <img
             key={index}
             src={star}
@@ -67,66 +69,53 @@ const Register = ({ onRegister }) => {
       </div>
 
       {/* Registration Box */}
-      <form
-        onSubmit={handleRegister}
-        className="z-10 bg-white p-8 rounded-2xl shadow-xl max-w-md w-full relative"
-      >
-        <div className="flex justify-center mb-4">
+      <div className="w-full max-w-2xl flex justify-center">
+        <div className="bg-white p-6 pt-20 rounded-lg shadow-md mb-2 max-w-sm w-full relative">
+          {/* Centered User Image */}
           <img
             src={user}
-            alt="User Avatar"
-            className="w-24 h-24 object-cover rounded-full shadow border-4 border-purple-300"
+            alt="User"
+            className="w-24 h-24 rounded-full absolute -top-12 left-1/2 transform -translate-x-1/2 border-4 border-white shadow-lg bg-white"
           />
+          
+          {/* Form Content */}
+          <form onSubmit={handleRegister} className="flex flex-col space-y-4">
+            <input
+              type="text"
+              placeholder="Choose a username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Create a password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 border rounded mb-2"
+              required
+            />
+            
+            <button
+              type="submit"
+              className="bg-purple-300 text-white px-4 py-2 rounded hover:bg-purple-600"
+            >
+              Register
+            </button>
+          </form>
+
+          <ToastContainer />
         </div>
-        <h2 className="text-3xl font-semibold text-center text-purple-500 mb-6">
-          Create your account 💫
-        </h2>
-
-        <label className="block text-sm font-medium mb-1 text-purple-600">
-          Username
-        </label>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Choose a username"
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-          required
-        />
-
-        <label className="block text-sm font-medium mb-1 text-purple-600">
-          Email
-        </label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-          required
-        />
-
-        <label className="block text-sm font-medium mb-1 text-purple-600">
-          Password
-        </label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Create a password"
-          className="w-full p-2 border border-gray-300 rounded mb-4"
-          required
-        />
-
-        <button
-          type="submit"
-          className="bg-purple-300 w-full text-white py-2 rounded hover:bg-purple-600 transition"
-        >
-          Register
-        </button>
-
-        <ToastContainer />
-      </form>
+      </div>
     </div>
   );
 };
