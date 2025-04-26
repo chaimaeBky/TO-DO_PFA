@@ -1,9 +1,12 @@
 from flask import Flask , request  , jsonify
 from flask_cors import CORS
 import json
-app = Flask(__name__)
 
+
+app = Flask(__name__)
 CORS(app)
+
+
 
 TASK_FILE='tasks.json'
 
