@@ -1,0 +1,22 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches: [ main, master , testBack ]  # Adjust if your main branch has a different name
+  pull_request:
+    branches: [ main, master , testBack ]
+
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Important for SonarCloud to see all history
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Auto-created by GitHub
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # The one you added earlier
