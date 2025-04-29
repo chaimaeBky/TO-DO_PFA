@@ -25,9 +25,9 @@ jobs:
         run: |
           cd back
           pip install -r requirements.txt  # Adjust path if needed
-          pip install pytest pytest-cov
-          pip install flask pytest pytest-cov  # Install missing dependencies
-
+          pip install flask flask_cors pytest pytest-cov  # Install Flask, flask_cors, and test dependencies
+     
+     
       # Run backend tests with coverage
       #- name: Run tests with coverage
       #  run: |
