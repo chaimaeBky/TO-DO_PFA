@@ -1,0 +1,17 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.2, pytest-8.3.5, pluggy-1.5.0 -- C:\Users\USER\OneDrive\Bureau\selfTaught\fullStack\ToDo\env\Scripts\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.2', 'Platform': 'Windows-10-10.0.19045-SP0', 'Packages': {'pytest': '8.3.5', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '6.1.1', 'html': '4.1.1', 'metadata': '3.1.1'}, 'JAVA_HOME': 'C:\\Program Files\\Java\\jdk-18'}
+rootdir: C:\Users\USER\OneDrive\Bureau\selfTaught\fullStack\ToDo\back
+plugins: cov-6.1.1, html-4.1.1, metadata-3.1.1
+collecting ... collected 7 items
+
+tests/test_auth.py::test_register PASSED                                 [ 14%]
+tests/test_auth.py::test_register_missing_fields PASSED                  [ 28%]
+tests/test_auth.py::test_get_user_tasks PASSED                           [ 42%]
+tests/test_auth.py::test_add_subtask PASSED                              [ 57%]
+tests/test_auth.py::test_update_subtasks PASSED                          [ 71%]
+tests/test_auth.py::test_delete_subtask PASSED                           [ 85%]
+tests/test_auth.py::test_delete_task PASSED                              [100%]
+
+============================== 7 passed in 0.44s ==============================

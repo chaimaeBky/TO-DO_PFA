@@ -56,13 +56,13 @@ def addSubtask(task_id):
     new_subtask = request.json.get('subtask')
     tasks = load_tasks()
     updated_task = None
-    for task in tasks:
+    for task in tasks['Tasks']:
         if task['id'] == task_id:
             task['subtasks'].append(new_subtask)
             updated_task = task
             break
     save_task(tasks)
-    return jsonify(updated_task), 201
+    return jsonify(updated_task), 200 
 
 
 
@@ -78,15 +78,23 @@ def updateSubtasks(task_id):
     return jsonify(tasks), 200
 
 
-@app.route('/Tasks/<string:task_id>'  , methods=['DELETE'])
-def deleteSubTaskApp (task_id) :
-    subtasks = request.json.get('subtasks')
+@app.route('/Tasks/<string:task_id>', methods=['DELETE'])
+def deleteSubTaskApp(task_id):
+    subtask = request.json.get('subtask')  
     tasks = load_tasks()
-    for task in tasks:    
-        if task['id'] == task_id :
-           task['subtasks'] = subtasks 
+    for task in tasks['Tasks']:  
+        if task['id'] == task_id:
+            if subtask:
+                if subtask in task['subtasks']:
+                    task['subtasks'].remove(subtask)
+            else:
+                pass
+    
+    if not subtask:
+        tasks['Tasks'] = [task for task in tasks['Tasks'] if task['id'] != task_id]
+        
     save_task(tasks)
-    return jsonify(tasks) , 200
+    return jsonify(tasks), 200
 
 @app.route('/Tasks' , methods=['POST'])
 def addGlobalTaskApp() :
