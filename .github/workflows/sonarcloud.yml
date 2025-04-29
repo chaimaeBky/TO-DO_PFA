@@ -28,10 +28,16 @@ jobs:
           pip install pytest pytest-cov
 
       # Run backend tests with coverage
-      - name: Run tests with coverage
+      #- name: Run tests with coverage
+      #  run: |
+      #    cd back
+      #    pytest --cov=. --cov-report=xml:coverage.xml
+      
+      - name: Run tests and generate coverage report
         run: |
-          cd back
-          pytest --cov=. --cov-report=xml:coverage.xml
+          cd back  # Change directory to where your back-end files are
+          PYTHONPATH=./ pytest --cov=back --cov-report xml:coverage.xml
+
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master  # Use the latest stable version instead of 'master' if needed
