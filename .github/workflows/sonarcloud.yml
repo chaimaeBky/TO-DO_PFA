@@ -20,10 +20,7 @@ jobs:
         with:
           python-version: '3.x'  # Use the correct Python version if needed
 
-      - name: Install dependencies (if any, e.g., pytest)
-        run: |
-          pip install -r requirements.txt  # Install dependencies from your requirements.txt
-
+      
       - name: Run tests and generate coverage report (if needed)
         run: |
           pytest --cov=back --cov-report xml:coverage.xml  # Adjust for your project structure
