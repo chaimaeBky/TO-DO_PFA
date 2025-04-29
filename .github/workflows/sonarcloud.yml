@@ -2,21 +2,36 @@ name: SonarCloud Analysis
 
 on:
   push:
-    branches: [ main, master , testBack ]  # Adjust if your main branch has a different name
+    branches: [main, master, testBack]  # Adjust to match your branch names
   pull_request:
-    branches: [ main, master , testBack ]
+    branches: [main, master, testBack]
 
 jobs:
   sonarcloud:
-    name: SonarCloud
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Important for SonarCloud to see all history
+          fetch-depth: 0  # Important for SonarCloud to see the full commit history
+
+      - name: Set up Python (if using Python)
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # Use the correct Python version if needed
+
+      - name: Install dependencies (if any, e.g., pytest)
+        run: |
+          pip install -r requirements.txt  # Install dependencies from your requirements.txt
+
+      - name: Run tests and generate coverage report (if needed)
+        run: |
+          pytest --cov=back --cov-report xml:coverage.xml  # Adjust for your project structure
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@master  # Use the latest stable version instead of 'master' if needed
+        with:
+          args: '-Dsonar.login=${{ secrets.SONAR_TOKEN }}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Auto-created by GitHub
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # The one you added earlier
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Your SonarCloud token, set in GitHub Secrets
