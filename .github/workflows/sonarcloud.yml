@@ -23,14 +23,14 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd backend
+          cd back
           pip install -r requirements.txt  # Adjust path if needed
           pip install pytest pytest-cov
 
       # Run backend tests with coverage
       - name: Run tests with coverage
         run: |
-          cd backend
+          cd back
           pytest --cov=. --cov-report=xml:coverage.xml
 
       - name: SonarCloud Scan
