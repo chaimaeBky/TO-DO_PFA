@@ -31,14 +31,14 @@ jobs:
         run: npm test
 
       - name: Run Cypress tests
-  working-directory: './front'
-  continue-on-error: true
-  run: |
-    if [ -f "cypress.config.js" ]; then
-      npx cypress run --component || echo "::warning::Some Cypress tests failed"
-    else
-      echo "No Cypress config found"
-    fi
+        working-directory: './front'
+        continue-on-error: true
+        run: |
+            if [ -f "cypress.config.js" ]; then
+             npx cypress run --component || echo "::warning::Some Cypress tests failed"
+            else
+                echo "No Cypress config found"
+            fi
 
   build:
     needs: test
