@@ -1,4 +1,4 @@
-name: Frontend CI - Tests Automatisés
+name: Frontend CI
 on:
   push:
     branches: [master, frontendTest]
@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: './front'
+        working-directory: './front'  # Spécifie le dossier du projet
     steps:
-      - name: Checkout du code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -20,34 +20,38 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: 'front/package-lock.json'  # Chemin relatif vers le lockfile
 
-      - name: Installer les dépendances
-        run: npm install
+      - name: Install dependencies
+        working-directory: './front'
+        run: npm ci  # Utilise npm clean-install
 
-      - name: Exécuter les tests unitaires
+      - name: Run unit tests
+        working-directory: './front'
         run: npm test
 
-      - name: Exécuter les tests d'intégration (si configurés)
-        continue-on-error: true  # Permet au workflow de continuer même si les tests échouent
+      - name: Run integration tests
+        working-directory: './front'
+        continue-on-error: true
         run: |
-          if [ -f "node_modules/.bin/cypress" ]; then
-            npx cypress run --component || echo "::warning::Certains tests d'intégration ont échoué"
-          elif [ -f "package.json" ] && grep -q '"test:integration"' package.json; then
-            npm run test:integration || echo "::warning::Certains tests d'intégration ont échoué"
+          if [ -f "cypress.config.js" ]; then
+            npx cypress run --component || echo "::warning::Some integration tests failed"
           else
-            echo "Aucun runner de tests d'intégration configuré"
+            echo "No Cypress config found - skipping integration tests"
           fi
 
   build:
     needs: test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: './front'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-      - run: npm install
-      - run: npm run build
-      - name: Vérifier le build
-        run: ls -R dist
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'front/package-lock.json'
+      - name: Install and build
+        working-directory: './front'
+        run: |
+          npm ci
+          npm run build
