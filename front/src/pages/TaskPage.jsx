@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useLoaderData , useParams ,Link } from 'react-router-dom'
 import SubTasksListing from '../component/SubTasksListing';
-import SubTasksHeader from '../component/subTasksHeader';
+import SubTasksHeader from '../component/SubTasksHeader';
 import { FaArrowLeft , FaPlus , FaTrash } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
