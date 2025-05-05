@@ -14,6 +14,36 @@
             "name": "rabab",
             "email": "rabab@gmail.com",
             "password": "123123"
+        },
+        {
+            "name": "saida",
+            "email": "saidaelajimi12@gmail.com",
+            "password": "12345AZERT"
+        },
+        {
+            "name": "saida",
+            "email": "user@test.com",
+            "password": "1234567890"
+        },
+        {
+            "name": "salma",
+            "email": "salma@gmail.com",
+            "password": "123456"
+        },
+        {
+            "name": "user",
+            "email": "user1@gmail.com",
+            "password": "WXCVBN?"
+        },
+        {
+            "name": "user3",
+            "email": "user3@test.com",
+            "password": "QSDFGH"
+        },
+        {
+            "name": "saida",
+            "email": "Saida@test.com",
+            "password": "123456"
         }
     ],
     "Tasks": [
@@ -124,6 +154,35 @@
             "icon": "\u2699\ufe0f",
             "subtasks": [],
             "email": "rabab@gmail.com"
+        },
+        {
+            "id": "bf4adef9-1a5f-44dd-b65f-05c56f97f2e1",
+            "title": "CI/CD pipeline",
+            "description": "the task will be completed in 3days",
+            "completed": false,
+            "icon": "\ud83d\udca1",
+            "subtasks": [
+                {
+                    "id": 1,
+                    "state": false,
+                    "text": "subtask1"
+                },
+                {
+                    "id": 2,
+                    "text": "subtask2",
+                    "state": false
+                }
+            ],
+            "email": "user@test.com"
+        },
+        {
+            "id": "49c1adc4-81aa-409a-bf24-1aa16b193f4b",
+            "title": "deploiment",
+            "description": "the task will be completed in 3days",
+            "completed": false,
+            "icon": "\ud83c\udf1f",
+            "subtasks": [],
+            "email": "user@test.com"
         }
     ]
 }
