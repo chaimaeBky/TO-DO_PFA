@@ -1,4 +1,59 @@
 {
+    "Tasks": [
+        {
+            "id": "218d291f-899a-4ad7-b033-59f74ae2a940",
+            "title": "test",
+            "description": "test",
+            "completed": false,
+            "icon": "\ud83c\udf1f",
+            "subtasks": [
+                {
+                    "id": 1,
+                    "text": "test",
+                    "state": false
+                }
+            ],
+            "email": "chaimae@gmail.com"
+        },
+        {
+            "id": "837fa674-dab6-43e8-a33d-8fef0c4c3f01",
+            "title": "test2",
+            "description": "test2",
+            "completed": false,
+            "icon": "\ud83d\udcc5",
+            "subtasks": [],
+            "email": "chaimae@gmail.com"
+        },
+        {
+            "id": "bf4adef9-1a5f-44dd-b65f-05c56f97f2e1",
+            "title": "CI/CD pipeline",
+            "description": "the task will be completed in 3days",
+            "completed": false,
+            "icon": "\ud83d\udca1",
+            "subtasks": [
+                {
+                    "id": 1,
+                    "state": false,
+                    "text": "subtask1"
+                },
+                {
+                    "id": 2,
+                    "text": "subtask2",
+                    "state": false
+                }
+            ],
+            "email": "user@test.com"
+        },
+        {
+            "id": "49c1adc4-81aa-409a-bf24-1aa16b193f4b",
+            "title": "deploiment",
+            "description": "the task will be completed in 3days",
+            "completed": false,
+            "icon": "\ud83c\udf1f",
+            "subtasks": [],
+            "email": "user@test.com"
+        }
+    ],
     "Users": [
         {
             "email": "chaimae@gmail.com",
@@ -44,145 +99,11 @@
             "name": "saida",
             "email": "Saida@test.com",
             "password": "123456"
-        }
-    ],
-    "Tasks": [
-        {
-            "id": "2",
-            "email": "chaimae@gmail.com",
-            "title": "Prepare for AI Presentation",
-            "description": "Tasks for preparing slides and a demo for the AI presentation",
-            "completed": false,
-            "icon": "\ud83d\udcbb",
-            "subtasks": [
-                {
-                    "completed": true,
-                    "id": 1,
-                    "text": "Research the latest AI trends"
-                },
-                {
-                    "completed": false,
-                    "id": 2,
-                    "text": "Create slide deck"
-                }
-            ]
         },
         {
-            "id": "6755b136-e458-49cc-bc21-fe8fb62ad542",
-            "email": "chaimae@gmail.com",
-            "title": "Project Setup",
-            "description": "Initialize Git repository",
-            "completed": false,
-            "icon": "\u2699\ufe0f",
-            "subtasks": [
-                {
-                    "id": 1,
-                    "state": false,
-                    "text": "Create .gitignore"
-                },
-                {
-                    "id": 2,
-                    "text": "Push to GitHub",
-                    "state": false
-                }
-            ]
-        },
-        {
-            "id": "6d8a4095-27e3-4fe4-af4f-a2b8b4f38530",
-            "email": "leilabky@gmail.com",
-            "title": "Frontend (React) Setup",
-            "description": "Design UI",
-            "completed": false,
-            "icon": "\ud83c\udf1f",
-            "subtasks": [
-                {
-                    "id": 1,
-                    "state": false,
-                    "text": "Create basic layout (header, main, footer)"
-                },
-                {
-                    "id": 2,
-                    "text": "Style using CSS or Tailwind",
-                    "state": false
-                }
-            ]
-        },
-        {
-            "id": "80ba6705-b0f4-446a-9031-ec10a3740b7f",
-            "email": "leilabky@gmail.com",
-            "title": "Backend (Flask) Setup",
-            "description": "",
-            "completed": false,
-            "icon": "\ud83d\udca1",
-            "subtasks": [
-                {
-                    "id": 1,
-                    "state": false,
-                    "text": "Test backend with Postman or browser"
-                },
-                {
-                    "id": 2,
-                    "state": false,
-                    "text": "In React, use axios or fetch to call Flask API"
-                },
-                {
-                    "id": 3,
-                    "state": false,
-                    "text": "Show todos from Flask in your React app"
-                },
-                {
-                    "id": 4,
-                    "text": "Add, update, delete todo items via API",
-                    "state": false
-                }
-            ]
-        },
-        {
-            "id": "5e8e65e6-6f5a-41b4-b702-0545328770e3",
-            "title": "test",
-            "description": "test",
-            "completed": false,
-            "icon": "\ud83c\udf1f",
-            "subtasks": [],
-            "email": "chaimae@gmail.com"
-        },
-        {
-            "id": "2af44fac-9172-4eb9-a821-39cc121116d1",
-            "title": "rababtest",
-            "description": "",
-            "completed": false,
-            "icon": "\u2699\ufe0f",
-            "subtasks": [],
-            "email": "rabab@gmail.com"
-        },
-        {
-            "id": "bf4adef9-1a5f-44dd-b65f-05c56f97f2e1",
-            "title": "CI/CD pipeline",
-            "description": "the task will be completed in 3days",
-            "completed": false,
-            "icon": "\ud83d\udca1",
-            "subtasks": [
-                {
-                    "id": 1,
-                    "state": false,
-                    "text": "subtask1"
-                },
-                {
-                    "id": 2,
-                    "text": "subtask2",
-                    "state": false
-                }
-            ],
-            "email": "user@test.com"
-        },
-        {
-            "id": "49c1adc4-81aa-409a-bf24-1aa16b193f4b",
-            "title": "deploiment",
-            "description": "the task will be completed in 3days",
-            "completed": false,
-            "icon": "\ud83c\udf1f",
-            "subtasks": [],
-            "email": "user@test.com"
+            "name": "Test User",
+            "email": "test@example.com",
+            "password": "123456"
         }
     ]
 }
