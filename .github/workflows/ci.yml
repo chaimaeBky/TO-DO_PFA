@@ -1,13 +1,16 @@
 name: Frontend CI - Tests Automatisés
 on:
   push:
-    branches: [ master, frontendTest ]
+    branches: [master, frontendTest]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: './front'  # Spécifiez le sous-dossier où se trouve package.json
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
@@ -17,21 +20,21 @@ jobs:
         with:
           node-version: '20'
 
-      # Remplacez npm ci par npm install si package-lock.json est absent/invalide
       - name: Installer les dépendances
         run: npm install
 
       - name: Exécuter les tests unitaires
         run: npm test
-        working-directory: ./
 
       - name: Exécuter les tests d'intégration
         run: npm run test:integration
-        working-directory: ./
 
   build:
     needs: test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: './front'  # Même spécification ici
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
