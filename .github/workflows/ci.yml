@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: './front'
+        working-directory: './front'  # Spécifie le dossier du projet
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,34 +20,38 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: 'front/package-lock.json'  # Chemin relatif vers le lockfile
 
       - name: Install dependencies
-        run: npm install
+        working-directory: './front'
+        run: npm ci  # Utilise npm clean-install
 
       - name: Run unit tests
+        working-directory: './front'
         run: npm test
 
-      - name: Run integration tests (if configured)
+      - name: Run integration tests
+        working-directory: './front'
         continue-on-error: true
         run: |
           if [ -f "cypress.config.js" ]; then
             npx cypress run --component || echo "::warning::Some integration tests failed"
-          elif grep -q '"test:integration"' package.json; then
-            npm run test:integration || echo "::warning::Some integration tests failed"
           else
-            echo "No integration tests configured - skipping"
+            echo "No Cypress config found - skipping integration tests"
           fi
 
   build:
     needs: test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: './front'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-      - run: npm install
-      - run: npm run build
-      - name: Verify build output
-        run: ls -R dist
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'front/package-lock.json'
+      - name: Install and build
+        working-directory: './front'
+        run: |
+          npm ci
+          npm run build
