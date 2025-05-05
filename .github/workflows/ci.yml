@@ -1,9 +1,9 @@
 name: Frontend CI - Tests Automatisés
 on:
   push:
-    branches: [ master, frontendTest ]  # Déclenché sur master et frontendTest
+    branches: [ master, frontendTest ]
   pull_request:
-    branches: [ master ]               # Déclenché pour les PR vers master
+    branches: [ master ]
 
 jobs:
   test:
@@ -15,32 +15,25 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Ou la version dans votre .nvmrc
+          node-version: '20'
 
-      - name: Cache des dépendances
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-
+      # Remplacez npm ci par npm install si package-lock.json est absent/invalide
       - name: Installer les dépendances
-        run: npm ci  # Installation propre (équivalent à npm install avec suppression de node_modules)
+        run: npm install
 
       - name: Exécuter les tests unitaires
-        run: npm test -- --config vite.config.js  # Adapté pour Vitest
-        working-directory: ./  # Cible la racine du projet
+        run: npm test
+        working-directory: ./
 
       - name: Exécuter les tests d'intégration
-        run: npm run test:integration  # Si vous avez un script dédié
+        run: npm run test:integration
         working-directory: ./
 
   build:
-    needs: test  # Attend que les tests passent
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-      - run: npm ci
+      - run: npm install
       - run: npm run build
-      - name: Vérifier le build
-        run: ls -R dist  # Liste les fichiers générés (pour debug)
