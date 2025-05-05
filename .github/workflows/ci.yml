@@ -1,4 +1,4 @@
-name: Frontend CI - Tests Automatisés
+name: Frontend CI
 on:
   push:
     branches: [master, frontendTest]
@@ -12,7 +12,7 @@ jobs:
       run:
         working-directory: './front'
     steps:
-      - name: Checkout du code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -21,21 +21,21 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Installer les dépendances
+      - name: Install dependencies
         run: npm install
 
-      - name: Exécuter les tests unitaires
+      - name: Run unit tests
         run: npm test
 
-      - name: Exécuter les tests d'intégration (si configurés)
-        continue-on-error: true  # Permet au workflow de continuer même si les tests échouent
+      - name: Run integration tests (if configured)
+        continue-on-error: true
         run: |
-          if [ -f "node_modules/.bin/cypress" ]; then
-            npx cypress run --component || echo "::warning::Certains tests d'intégration ont échoué"
-          elif [ -f "package.json" ] && grep -q '"test:integration"' package.json; then
-            npm run test:integration || echo "::warning::Certains tests d'intégration ont échoué"
+          if [ -f "cypress.config.js" ]; then
+            npx cypress run --component || echo "::warning::Some integration tests failed"
+          elif grep -q '"test:integration"' package.json; then
+            npm run test:integration || echo "::warning::Some integration tests failed"
           else
-            echo "Aucun runner de tests d'intégration configuré"
+            echo "No integration tests configured - skipping"
           fi
 
   build:
@@ -49,5 +49,5 @@ jobs:
       - uses: actions/setup-node@v4
       - run: npm install
       - run: npm run build
-      - name: Vérifier le build
+      - name: Verify build output
         run: ls -R dist
