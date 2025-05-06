@@ -26,19 +26,9 @@ jobs:
         working-directory: './front'
         run: npm ci  # Utilise npm clean-install
 
-      - name: Run unit tests
+      - name: Run unit and integration tests
         working-directory: './front'
         run: npm test
-
-      - name: Run Cypress tests
-        working-directory: './front'
-        continue-on-error: true
-        run: |
-            if [ -f "cypress.config.js" ]; then
-             npx cypress run --component || echo "::warning::Some Cypress tests failed"
-            else
-                echo "No Cypress config found"
-            fi
 
   build:
     needs: test
