@@ -1,4 +1,5 @@
-name: Frontend CI
+name: Frontend CI/CD
+
 on:
   push:
     branches: [master, frontendTest]
@@ -10,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: './front'  # Spécifie le dossier du projet
+        working-directory: './front'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,11 +21,11 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 'front/package-lock.json'  # Chemin relatif vers le lockfile
+          cache-dependency-path: 'front/package-lock.json'
 
       - name: Install dependencies
         working-directory: './front'
-        run: npm ci  # Utilise npm clean-install
+        run: npm ci
 
       - name: Run unit and integration tests
         working-directory: './front'
@@ -45,3 +46,40 @@ jobs:
         run: |
           npm ci
           npm run build
+
+      - name: Archive production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: front/dist/
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "$GITHUB_REF" == "refs/heads/master" ]; then
+            echo "ENV=production" >> $GITHUB_ENV
+            echo "Deploying to production"
+          elif [ "$GITHUB_REF" == "refs/heads/frontendTest" ]; then
+            echo "ENV=staging" >> $GITHUB_ENV
+            echo "Deploying to staging"
+          fi
+
+      - name: Deploy
+        run: |
+          if [ "$ENV" == "production" ]; then
+            echo "Ajoutez ici vos commandes de déploiement PRODUCTION"
+            # Ex: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+          elif [ "$ENV" == "staging" ]; then
+            echo "Ajoutez ici vos commandes de déploiement STAGING"
+            # Ex: vercel --token ${{ secrets.VERCEL_TOKEN }}
+          fi
