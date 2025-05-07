@@ -31,6 +31,14 @@ jobs:
         working-directory: './front'
         run: npm test
 
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          args: '-Dsonar.login=${{ secrets.SONAR_TOKEN }}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -46,7 +54,6 @@ jobs:
         run: |
           npm ci
           npm run build
-
       - name: Archive production build
         uses: actions/upload-artifact@v4
         with:
@@ -73,7 +80,6 @@ jobs:
             echo "ENV=staging" >> $GITHUB_ENV
             echo "Deploying to staging"
           fi
-
       - name: Deploy
         run: |
           if [ "$ENV" == "production" ]; then
