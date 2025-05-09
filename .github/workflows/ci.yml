@@ -65,7 +65,7 @@ jobs:
           path: front/dist/
   docker-push:
     needs: [test, build]  # Dépend des deux jobs
-    if: github.ref == 'refs/heads/master'  # Limitez au branch master
+    if: github.ref == 'refs/heads/master/frontendTest'  # Limitez au branch master
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
