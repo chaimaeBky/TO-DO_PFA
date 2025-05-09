@@ -63,6 +63,30 @@ jobs:
         with:
           name: frontend-build
           path: front/dist/
+  docker-push:
+    needs: [test, build]  # Dépend des deux jobs
+    if: github.ref == 'refs/heads/master'  # Limitez au branch master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Build and Push Backend
+        working-directory: './back'
+        run: |
+          docker build -t saidaelajimi/to-do_pfa-back:latest -t saidaelajimi/to-do_pfa-back:${{ github.sha }} .
+          docker push saidaelajimi/to-do_pfa-back:latest
+          docker push saidaelajimi/to-do_pfa-back:${{ github.sha }}
+
+      - name: Build and Push Frontend
+        working-directory: './front'
+        run: |
+          docker build -t saidaelajimi/to-do_pfa-front:latest -t saidaelajimi/to-do_pfa-front:${{ github.sha }} .
+          docker push saidaelajimi/to-do_pfa-front:latest
+          docker push saidaelajimi/to-do_pfa-front:${{ github.sha }}
 
   deploy:
     needs: build
