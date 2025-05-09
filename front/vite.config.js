@@ -35,6 +35,7 @@ export default defineConfig({
   },
     
   server: {
+    historyApiFallback: true,
     port: 3002,
     proxy: {
       '/api': {

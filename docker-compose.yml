@@ -1,0 +1,25 @@
+services:
+  back:  # Nom du service cohérent avec votre dossier
+    build:
+      context: ./back  # Chemin corrigé
+      dockerfile: Dockerfile.backend
+    container_name: todo-back
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+    volumes:
+      - ./back:/app
+    restart: unless-stopped
+
+  front:  # Nom du service cohérent avec votre dossier
+    build:
+      context: ./front
+      dockerfile: Dockerfile.frontend
+    container_name: todo-front  # Ajouté pour cohérence
+    ports:
+      - "80:80"
+    depends_on:
+      - back
+    restart: unless-stopped
