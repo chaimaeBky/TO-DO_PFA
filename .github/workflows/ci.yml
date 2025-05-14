@@ -7,7 +7,77 @@ on:
     branches: [master]
 
 jobs:
+  # Analyse SonarCloud (exécutée en parallèle des tests)
+  sonar-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Nécessaire pour l'historique complet des commits
+
+      # Backend Analysis
+      - name: Setup Python
+        if: contains(github.ref, 'testBack') || contains(github.ref, 'master')
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        if: contains(github.ref, 'testBack') || contains(github.ref, 'master')
+        run: |
+          cd back
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run Python tests with coverage
+        if: contains(github.ref, 'testBack') || contains(github.ref, 'master')
+        run: |
+          cd back
+          PYTHONPATH=./ pytest --cov=back --cov-report xml:coverage.xml --junitxml=test-results.xml
+
+      # Frontend Analysis
+      - name: Setup Node.js
+        if: contains(github.ref, 'frontendTest') || contains(github.ref, 'master')
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'front/package-lock.json'
+
+      - name: Install frontend dependencies
+        if: contains(github.ref, 'frontendTest') || contains(github.ref, 'master')
+        working-directory: './front'
+        run: npm ci
+
+      - name: Run frontend tests with coverage
+        if: contains(github.ref, 'frontendTest') || contains(github.ref, 'master')
+        working-directory: './front'
+        run: npm run test:ci
+
+      # Analyse SonarCloud unifiée
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
+            -Dsonar.organization=chaimaebky
+            -Dsonar.branch.name=${{ github.head_ref || github.ref_name }}
+            -Dsonar.sources=front/src,back
+            -Dsonar.tests=front/tests,back/tests
+            -Dsonar.javascript.lcov.reportPaths=front/coverage/lcov.info
+            -Dsonar.python.coverage.reportPaths=back/coverage.xml
+            -Dsonar.testExecutionReportPaths=front/test-results.xml,back/test-results.xml
+            -Dsonar.exclusions=**/node_modules/**,**/migrations/**,**/static/**
+            -Dsonar.qualitygate.wait=true
+
+  # Vos jobs existants (test, build, docker-push, deploy)
   test:
+    needs: sonar-analysis
+
     runs-on: ubuntu-latest
     defaults:
       run:
