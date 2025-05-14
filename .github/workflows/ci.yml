@@ -1,120 +1,80 @@
-name: Frontend CI/CD
+name: Frontend CI/CD with SonarCloud
 
 on:
   push:
     branches: [master, frontendTest]
+    paths:
+      - 'front/**'
   pull_request:
     branches: [master]
 
 jobs:
-  # Analyse SonarCloud (exécutée en parallèle des tests)
-  
   test:
-  
-
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: './front'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'front/package-lock.json'
 
       - name: Install dependencies
-        working-directory: './front'
         run: npm ci
 
-      - name: Run unit and integration tests
-        working-directory: './front'
-        run: npm test
+      - name: Run tests with coverage
+        run: npm run test:ci
 
-      # - name: SonarCloud Scan
-      #   uses: SonarSource/sonarqube-scan-action@v5.0.0
-      #   env:
-      #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #          projectBaseDir: .
-      #          args: >
-      #            -Dsonar.qualitygate.wait=true
-      #            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-      #            -Dsonar.testExecutionReportPaths=test-results.xml
   sonar-analysis:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Nécessaire pour l'historique complet des commits
+          fetch-depth: 0
 
-      
-
-      # Frontend Analysis
-      - name: Setup Node.js
-        if: contains(github.ref, 'frontendTest') || contains(github.ref, 'master')
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'front/package-lock.json'
 
-      - name: Install frontend dependencies
-        if: contains(github.ref, 'frontendTest') || contains(github.ref, 'master')
-        working-directory: './front'
-        run: npm ci
-
-      - name: Run frontend tests with coverage
-        if: contains(github.ref, 'frontendTest') || contains(github.ref, 'master')
-        working-directory: './front'
-        run: npm run test:ci
-
-      # Analyse SonarCloud unifiée
-      - name: SonarCloud Scan
+      - name: Run SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: .
+          projectBaseDir: './front'
           args: >
-            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
+            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA-frontend
             -Dsonar.organization=chaimaebky
-            -Dsonar.branch.name=${{ github.head_ref || github.ref_name }}
-            -Dsonar.sources=front/src,back
-            -Dsonar.tests=front/tests,back/tests
-            -Dsonar.javascript.lcov.reportPaths=front/coverage/lcov.info
-            -Dsonar.python.coverage.reportPaths=back/coverage.xml
-            -Dsonar.testExecutionReportPaths=front/test-results.xml,back/test-results.xml
-            -Dsonar.exclusions=**/node_modules/**,**/migrations/**,**/static/**
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.testExecutionReportPaths=test-results.xml
+            -Dsonar.exclusions=**/node_modules/**,**/static/**
             -Dsonar.qualitygate.wait=true
 
-  # Vos jobs existants (test, build, docker-push, deploy)
   build:
-    needs: test
+    needs: [test, sonar-analysis]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'front/package-lock.json'
       - name: Install and build
         working-directory: './front'
         run: |
           npm ci
           npm run build
-      - name: Archive production build
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: front/dist/
+
+  # ... (rest of your docker-push and deploy jobs)
   docker-push:
     needs: [test, build]
     if: github.ref == 'refs/heads/master'  # Exécution uniquement sur master
