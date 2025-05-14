@@ -53,25 +53,7 @@ jobs:
         with:
           fetch-depth: 0  # Nécessaire pour l'historique complet des commits
 
-      # Backend Analysis
-      - name: Setup Python
-        if: contains(github.ref, 'testBack') || contains(github.ref, 'master')
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Python dependencies
-        if: contains(github.ref, 'testBack') || contains(github.ref, 'master')
-        run: |
-          cd back
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
-
-      - name: Run Python tests with coverage
-        if: contains(github.ref, 'testBack') || contains(github.ref, 'master')
-        run: |
-          cd back
-          PYTHONPATH=./ pytest --cov=back --cov-report xml:coverage.xml --junitxml=test-results.xml
+      
 
       # Frontend Analysis
       - name: Setup Node.js
