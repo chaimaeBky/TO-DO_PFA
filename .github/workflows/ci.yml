@@ -27,38 +27,56 @@ jobs:
         run: npm ci
 
       - name: Run tests with coverage
-        run: npm run test:ci
+        run: |
+          npm run test:ci
+          # Vérification que le rapport lcov est généré
+          if [ ! -f "coverage/lcov.info" ]; then
+            echo "::error::Le fichier coverage/lcov.info n'a pas été généré"
+            exit 1
+          fi
 
       - name: Convert test results to SonarQube format
         run: |
           # Installation des dépendances nécessaires
           sudo apt-get update
-          sudo apt-get install -y libxml2-utils
+          sudo apt-get install -y libxml2-utils jq
           
+          # Vérification que le fichier de test existe
+          if [ ! -f "test-results.xml" ]; then
+            echo "::error::Fichier test-results.xml introuvable"
+            exit 1
+          fi
+
           # Conversion du format JUnit vers le format SonarQube
           echo '<?xml version="1.0" encoding="UTF-8"?>' > test-results-sonar.xml
           echo '<testExecutions version="1">' >> test-results-sonar.xml
           
-          # Traitement de chaque fichier de test
-          for file in $(find . -name "*.test.jsx"); do
-            filepath=${file#./}
-            echo "  <file path=\"$filepath\">" >> test-results-sonar.xml
-            
-            # Extraction des cas de test depuis le fichier JUnit original
-            xmllint --xpath "//testsuite[@file=\"$filepath\"]/testcase" test-results.xml | \
-            while read -r testcase; do
-              name=$(echo "$testcase" | grep -o 'name="[^"]*"' | cut -d'"' -f2)
-              time=$(echo "$testcase" | grep -o 'time="[^"]*"' | cut -d'"' -f2)
-              echo "    <testCase name=\"$name\" duration=\"$time\"/>" >> test-results-sonar.xml
-            done
-            
-            echo "  </file>" >> test-results-sonar.xml
+          # Traitement des résultats de test
+          xmllint --xpath '//testcase/@file | //testcase/@name | //testcase/@time' test-results.xml | \
+          while read -r line; do
+            if [[ $line == *"file="* ]]; then
+              if [ -n "$current_file" ]; then
+                echo "  </file>" >> test-results-sonar.xml
+              fi
+              current_file=$(echo $line | cut -d'"' -f2)
+              echo "  <file path=\"$current_file\">" >> test-results-sonar.xml
+            elif [[ $line == *"name="* ]]; then
+              test_name=$(echo $line | cut -d'"' -f2)
+            elif [[ $line == *"time="* ]]; then
+              test_time=$(echo $line | cut -d'"' -f2)
+              echo "    <testCase name=\"$test_name\" duration=\"$test_time\"/>" >> test-results-sonar.xml
+            fi
           done
+          
+          # Fermeture du dernier fichier
+          if [ -n "$current_file" ]; then
+            echo "  </file>" >> test-results-sonar.xml
+          fi
           
           echo '</testExecutions>' >> test-results-sonar.xml
           
-          # Vérification du fichier généré
-          xmllint --noout test-results-sonar.xml
+          # Validation du fichier généré
+          xmllint --noout test-results-sonar.xml || exit 1
 
   sonar-analysis:
     needs: test
@@ -72,8 +90,16 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Verify files exist
+        working-directory: './front'
+        run: |
+          ls -la coverage/lcov.info
+          ls -la test-results-sonar.xml
+          cat coverage/lcov.info | head -n 5
+          cat test-results-sonar.xml | head -n 5
+
       - name: Run SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -82,24 +108,30 @@ jobs:
           args: >
             -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
             -Dsonar.organization=chaimaebky
-            -Dsonar.javascript.lcov.reportPaths=coverage/Icov-report/lcov.info
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.testExecutionReportPaths=test-results-sonar.xml
-            -Dsonar.exclusions=**/node_modules/**,**/static/**,front/tests/**/*.{js,jsx}
+            -Dsonar.exclusions=**/node_modules/**,**/static/**,tests/**/*.{js,jsx}
             -Dsonar.qualitygate.wait=true
+            -Dsonar.verbose=true
 
   build:
     needs: [test, sonar-analysis]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'front/package-lock.json'
+
       - name: Install and build
         working-directory: './front'
         run: |
           npm ci
           npm run build
+          
       - uses: actions/upload-artifact@v4
         with:
           name: frontend-build
@@ -112,25 +144,28 @@ jobs:
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      IMAGE_NAME: to-do_pfa-front
     steps:
       - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
         run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-      - name: Build and Push Backend
-        working-directory: ./back
-        run: |
-          docker build -t $DOCKERHUB_USERNAME/to-do_pfa-back:latest .
-          docker push $DOCKERHUB_USERNAME/to-do_pfa-back:latest
       - name: Build and Push Frontend
         working-directory: ./front
         run: |
-          docker build -t $DOCKERHUB_USERNAME/to-do_pfa-front:latest .
-          docker push $DOCKERHUB_USERNAME/to-do_pfa-front:latest
+          # Récupération de la version depuis package.json
+          VERSION=$(jq -r '.version' package.json)
+          
+          # Construction et push des images
+          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:latest .
+          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
+          
+          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:$VERSION .
+          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:$VERSION
 
   deploy:
-    needs: build
+    needs: [build, docker-push]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
     runs-on: ubuntu-latest
     steps:
@@ -138,21 +173,30 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-build
+          path: ./front/dist
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Determine environment
         id: env
         run: |
           if [ "$GITHUB_REF" == "refs/heads/master" ]; then
             echo "ENV=production" >> $GITHUB_ENV
+            echo "SERVER_IP=${{ secrets.PRODUCTION_SERVER_IP }}" >> $GITHUB_ENV
             echo "Deploying to production"
           elif [ "$GITHUB_REF" == "refs/heads/frontendTest" ]; then
             echo "ENV=staging" >> $GITHUB_ENV
+            echo "SERVER_IP=${{ secrets.STAGING_SERVER_IP }}" >> $GITHUB_ENV
             echo "Deploying to staging"
           fi
-      - name: Deploy
+
+      - name: Deploy to server
         run: |
-          if [ "$ENV" == "production" ]; then
-            echo "Ajoutez ici vos commandes de déploiement PRODUCTION"
-          elif [ "$ENV" == "staging" ]; then
-            echo "Ajoutez ici vos commandes de déploiement STAGING"
-          fi
+          # Transfert des fichiers
+          scp -o StrictHostKeyChecking=no -r ./front/dist ubuntu@$SERVER_IP:/var/www/html/
+          
+          # Redémarrage du serveur web
+          ssh ubuntu@$SERVER_IP "sudo systemctl restart nginx"
