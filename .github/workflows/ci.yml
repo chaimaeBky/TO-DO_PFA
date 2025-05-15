@@ -1,4 +1,4 @@
-name: Frontend CI/CD
+name: Full CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  frontend-test:
+    name: Frontend Tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,107 +25,110 @@ jobs:
           cache-dependency-path: 'front/package-lock.json'
 
       - name: Install dependencies
-        working-directory: './front'
         run: npm ci
 
       - name: Run unit and integration tests
-        working-directory: './front'
-        run: npm test
+        run: npm test -- --coverage --watchAll=false
 
-      # - name: SonarCloud Scan
-      #   uses: SonarSource/sonarqube-scan-action@v5.0.0
-      #   env:
-      #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #          projectBaseDir: .
-      #          args: >
-      #            -Dsonar.qualitygate.wait=true
-      #            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-      #            -Dsonar.testExecutionReportPaths=test-results.xml
-  sonarcloud:
-    name: SonarCloud Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Important for SonarCloud to see the full commit history
-
-      - name: Set up Python (if using Python)
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'  # Use the correct Python version if needed
-
-      
-      - name: Install dependencies
+      - name: Convert coverage to lcov format
         run: |
-          cd back
-          pip install -r requirements.txt  # Adjust path if needed
-          pip install flask flask_cors pytest pytest-cov  # Install Flask, flask_cors, and test dependencies
-     
-     
-      # Run backend tests with coverage
-      #- name: Run tests with coverage
-      #  run: |
-      #    cd back
-      #    pytest --cov=. --cov-report=xml:coverage.xml
-      
-      - name: Run tests and generate coverage report
-        run: |
-          cd back  # Change directory to where your back-end files are
-          PYTHONPATH=./ pytest --cov=back --cov-report xml:coverage.xml
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master  # Use the latest stable version instead of 'master' if needed
+          npm install -g lcov-result-merger
+          lcov-result-merger 'coverage/lcov*.info' 'coverage/lcov.info'
+
+      - name: Upload coverage for SonarCloud
+        uses: actions/upload-artifact@v4
         with:
-          args: '-Dsonar.login=${{ secrets.SONAR_TOKEN }}'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Auto-created by GitHub
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Your SonarCloud token, set in GitHub Secrets
-  build:
-    needs: test
+          name: frontend-coverage
+          path: front/coverage/lcov.info
+
+  backend-test:
+    name: Backend Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          cd back
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: |
+          cd back
+          PYTHONPATH=./ pytest --cov=./ --cov-report xml:coverage.xml
+
+      - name: Upload coverage for SonarCloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: back/coverage.xml
+
+  build:
+    needs: [frontend-test, backend-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'front/package-lock.json'
-      - name: Install and build
+
+      - name: Install and build frontend
         working-directory: './front'
         run: |
           npm ci
           npm run build
+
       - name: Archive production build
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: front/dist/
-  # docker-push:
-  #   needs: [test, build]
-  #   if: github.ref == 'refs/heads/master'  # Exécution uniquement sur master
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  #     DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-  #   steps:
-  #     - uses: actions/checkout@v4
 
-  #     - name: Login to Docker Hub
-  #       run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+  sonarcloud:
+    name: SonarCloud Analysis
+    needs: [frontend-test, backend-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important for SonarCloud to get full commit history
 
-  #     - name: Build and Push Backend
-  #       working-directory: ./back
-  #       run: |
-  #         docker build -t $DOCKERHUB_USERNAME/to-do_pfa-back:latest .
-  #         docker push $DOCKERHUB_USERNAME/to-do_pfa-back:latest
-  #     - name: Build and Push Frontend
-  #       working-directory: ./front
-  #       run: |
-  #         docker build -t $DOCKERHUB_USERNAME/to-do_pfa-front:latest .
-  #         docker push $DOCKERHUB_USERNAME/to-do_pfa-front:latest
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: front/coverage/
+
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: back/
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=your-project-key
+            -Dsonar.organization=your-org
+            -Dsonar.javascript.lcov.reportPaths=front/coverage/lcov.info
+            -Dsonar.python.coverage.reportPaths=back/coverage.xml
+            -Dsonar.qualitygate.wait=true
+
   deploy:
-    needs: build
+    needs: [build, sonarcloud]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
     runs-on: ubuntu-latest
     steps:
@@ -143,13 +147,11 @@ jobs:
             echo "ENV=staging" >> $GITHUB_ENV
             echo "Deploying to staging"
           fi
+
       - name: Deploy
         run: |
           if [ "$ENV" == "production" ]; then
-            echo "Ajoutez ici vos commandes de déploiement PRODUCTION"
-            # Ex: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+            echo "Add production deployment commands here"
           elif [ "$ENV" == "staging" ]; then
-            echo "Ajoutez ici vos commandes de déploiement STAGING"
-            # Ex: vercel --token ${{ secrets.VERCEL_TOKEN }}
+            echo "Add staging deployment commands here"
           fi
-          
