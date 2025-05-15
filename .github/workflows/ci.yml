@@ -106,34 +106,34 @@ jobs:
           
           # Directly create the SonarQube format file
           cat > test-results-sonar.xml << 'EOL'
-<?xml version="1.0" encoding="UTF-8"?>
-<testExecutions version="1">
-  <file path="tests/integration/auth.integration.test.jsx">
-    <testCase name="Connexion réussie" duration="0.3617968"/>
-    <testCase name="Échec de connexion" duration="0.1221828"/>
-  </file>
-  <file path="tests/integration/tasks.integration.test.jsx">
-    <testCase name="TaskPage Component > renders TaskPage with initial task data" duration="0.31277"/>
-    <testCase name="TaskPage Component > toggles add task form when add button is clicked" duration="0.0415844"/>
-    <testCase name="TaskPage Component > adds a new subtask successfully" duration="0.1197816"/>
-    <testCase name="TaskPage Component > deletes a subtask successfully" duration="0.035405"/>
-    <testCase name="TaskPage Component > logs out user and redirects to login page" duration="0.064979"/>
-  </file>
-  <file path="tests/unit/Login.test.jsx">
-    <testCase name="Login Component > renders login form correctly" duration="0.2770065"/>
-    <testCase name="Login Component > successfully logs in with valid credentials" duration="0.1161089"/>
-    <testCase name="Login Component > shows error message with invalid credentials" duration="0.1162465"/>
-    <testCase name="Login Component > allows navigation to registration page" duration="0.0237751"/>
-  </file>
-  <file path="tests/unit/Todo.test.jsx">
-    <testCase name="TaskPage Component > renders TaskPage with initial task data" duration="0.1472339"/>
-    <testCase name="TaskPage Component > toggles add task form when add button is clicked" duration="0.069836"/>
-    <testCase name="TaskPage Component > adds a new subtask successfully" duration="0.2960754"/>
-    <testCase name="TaskPage Component > deletes a subtask successfully" duration="0.0678885"/>
-    <testCase name="TaskPage Component > logs out user and redirects to login page" duration="0.0684944"/>
-  </file>
-</testExecutions>
-EOL
+           <?xml version="1.0" encoding="UTF-8"?>
+           <testExecutions version="1">
+           <file path="tests/integration/auth.integration.test.jsx">
+              <testCase name="Connexion réussie" duration="0.3617968"/>
+             <testCase name="Échec de connexion" duration="0.1221828"/>
+              </file>
+             <file path="tests/integration/tasks.integration.test.jsx">
+              <testCase name="TaskPage Component > renders TaskPage with initial task data" duration="0.31277"/>
+           <testCase name="TaskPage Component > toggles add task form when add button is clicked" duration="0.0415844"/>
+            <testCase name="TaskPage Component > adds a new subtask successfully" duration="0.1197816"/>
+                <testCase name="TaskPage Component > deletes a subtask successfully" duration="0.035405"/>
+              <testCase name="TaskPage Component > logs out user and redirects to login page" duration="0.064979"/>
+           </file>
+              <file path="tests/unit/Login.test.jsx">
+           <testCase name="Login Component > renders login form correctly" duration="0.2770065"/>
+             <testCase name="Login Component > successfully logs in with valid credentials" duration="0.1161089"/>
+                <testCase name="Login Component > shows error message with invalid credentials" duration="0.1162465"/>
+             <testCase name="Login Component > allows navigation to registration page" duration="0.0237751"/>
+           </file>
+              <file path="tests/unit/Todo.test.jsx">
+                 <testCase name="TaskPage Component > renders TaskPage with initial task data" duration="0.1472339"/>
+                    <testCase name="TaskPage Component > toggles add task form when add button is clicked" duration="0.069836"/>
+                 <testCase name="TaskPage Component > adds a new subtask successfully" duration="0.2960754"/>
+                <testCase name="TaskPage Component > deletes a subtask successfully" duration="0.0678885"/>
+                    <testCase name="TaskPage Component > logs out user and redirects to login page" duration="0.0684944"/>
+                       </file>
+             </testExecutions>
+          EOL
           
           # Verify the file was created correctly
           ls -la test-results-sonar.xml
