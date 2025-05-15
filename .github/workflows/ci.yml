@@ -49,11 +49,11 @@ jobs:
         with:
           projectBaseDir: './front'
           args: >
-            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA-frontend
+            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
             -Dsonar.organization=chaimaebky
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.javascript.lcov.reportPaths=coverage/Icov-report/lcov.info
             -Dsonar.testExecutionReportPaths=test-results.xml
-            -Dsonar.exclusions=**/node_modules/**,**/static/**
+            -Dsonar.exclusions=**/node_modules/**,**/static/**,front/tests/**/*.{js,jsx}
             -Dsonar.qualitygate.wait=true
 
   build:
