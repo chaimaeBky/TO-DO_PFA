@@ -42,7 +42,44 @@ jobs:
       #            -Dsonar.qualitygate.wait=true
       #            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
       #            -Dsonar.testExecutionReportPaths=test-results.xml
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Important for SonarCloud to see the full commit history
 
+      - name: Set up Python (if using Python)
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # Use the correct Python version if needed
+
+      
+      - name: Install dependencies
+        run: |
+          cd back
+          pip install -r requirements.txt  # Adjust path if needed
+          pip install flask flask_cors pytest pytest-cov  # Install Flask, flask_cors, and test dependencies
+     
+     
+      # Run backend tests with coverage
+      #- name: Run tests with coverage
+      #  run: |
+      #    cd back
+      #    pytest --cov=. --cov-report=xml:coverage.xml
+      
+      - name: Run tests and generate coverage report
+        run: |
+          cd back  # Change directory to where your back-end files are
+          PYTHONPATH=./ pytest --cov=back --cov-report xml:coverage.xml
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master  # Use the latest stable version instead of 'master' if needed
+        with:
+          args: '-Dsonar.login=${{ secrets.SONAR_TOKEN }}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Auto-created by GitHub
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Your SonarCloud token, set in GitHub Secrets
   build:
     needs: test
     runs-on: ubuntu-latest
