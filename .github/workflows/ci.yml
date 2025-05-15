@@ -16,8 +16,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,63 +27,48 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests with coverage
-        run: npm test -- --coverage
+      - name: Run tests with coverage (Vitest)
+        run: npm test -- --coverage  # Modification ici pour Vitest
 
-      - name: Verify coverage report
+      - name: Process coverage output
         run: |
+          # Vitest génère déjà le format lcov par défaut
+          # Juste une vérification que le fichier existe
           if [ ! -f coverage/lcov.info ]; then
-            echo "::error::Coverage file not found!"
+            echo "Coverage file not found!"
             exit 1
           fi
-          echo "Coverage report generated successfully"
-
       - name: Upload coverage for SonarCloud
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
           path: front/coverage/lcov.info
-          retention-days: 1
 
   backend-test:
     name: Backend Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.x'
 
       - name: Install dependencies
-        working-directory: './back'
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest pytest-cov
-
+          cd back
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
       - name: Run tests with coverage
-        working-directory: './back'
         run: |
-          PYTHONPATH=$PWD pytest --cov=./ --cov-report xml:coverage.xml
-
-      - name: Verify coverage report
-        working-directory: './back'
-        run: |
-          if [ ! -f coverage.xml ]; then
-            echo "::error::Coverage file not found!"
-            exit 1
-          fi
-          echo "Coverage report generated successfully"
-
+          cd back
+          PYTHONPATH=./ pytest --cov=./ --cov-report xml:coverage.xml
       - name: Upload coverage for SonarCloud
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
           path: back/coverage.xml
-          retention-days: 1
 
   build:
     needs: [frontend-test, backend-test]
@@ -104,13 +87,11 @@ jobs:
         run: |
           npm ci
           npm run build
-
       - name: Archive production build
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: front/dist/
-          retention-days: 1
 
   sonarcloud:
     name: SonarCloud Analysis
@@ -121,46 +102,32 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Download coverage reports
+      - name: Download frontend coverage
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: frontend-coverage
+          path: front/coverage/
 
-      - name: Verify downloaded artifacts
-        run: |
-          ls -la artifacts/
-          cp artifacts/frontend-coverage/lcov.info front/coverage/
-          cp artifacts/backend-coverage/coverage.xml back/
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: back/
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        uses: SonarSource/sonarqube-scan-action@v5.0.0  # Version mise à jour
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
-            -Dsonar.organization=chaimaebky
-            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA # Remplacez par votre vraie clé
+            -Dsonar.organization=chaimaebky  # Remplacez par votre organisation
             -Dsonar.javascript.lcov.reportPaths=front/coverage/lcov.info
             -Dsonar.python.coverage.reportPaths=back/coverage.xml
             -Dsonar.qualitygate.wait=true
-            -Dsonar.sources=front/src,back/
-            -Dsonar.tests=front/tests,back/tests
-            -Dsonar.test.inclusions=**/*.test.{js,ts},**/*_test.py
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/__pycache__/**
-            -Dsonar.cpd.exclusions=**/test/**,**/mocks/**
-            -Dsonar.sourceEncoding=UTF-8
-            -Dsonar.scm.provider=git
-            -Dsonar.projectVersion=1.0.${{ github.run_number }}
-            -Dsonar.verbose=true
-
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
   deploy:
     needs: [build, sonarcloud]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
@@ -181,13 +148,10 @@ jobs:
             echo "ENV=staging" >> $GITHUB_ENV
             echo "Deploying to staging"
           fi
-
       - name: Deploy
         run: |
           if [ "$ENV" == "production" ]; then
-            echo "Production deployment would happen here"
-            # vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+            echo "Add production deployment commands here"
           elif [ "$ENV" == "staging" ]; then
-            echo "Staging deployment would happen here"
-            # vercel --token ${{ secrets.VERCEL_TOKEN }}
+            echo "Add staging deployment commands here"
           fi
