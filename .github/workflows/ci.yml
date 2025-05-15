@@ -27,13 +27,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit and integration tests
-        run: npm test -- --coverage --watchAll=false
+      - name: Run tests with coverage (Vitest)
+        run: npm test -- --coverage  # Modification ici pour Vitest
 
-      - name: Convert coverage to lcov format
+      - name: Process coverage output
         run: |
-          npm install -g lcov-result-merger
-          lcov-result-merger 'coverage/lcov*.info' 'coverage/lcov.info'
+          # Vitest génère déjà le format lcov par défaut
+          # Juste une vérification que le fichier existe
+          if [ ! -f coverage/lcov.info ]; then
+            echo "Coverage file not found!"
+            exit 1
+          fi
 
       - name: Upload coverage for SonarCloud
         uses: actions/upload-artifact@v4
@@ -100,7 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Important for SonarCloud to get full commit history
+          fetch-depth: 0
 
       - name: Download frontend coverage
         uses: actions/download-artifact@v4
