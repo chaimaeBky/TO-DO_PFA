@@ -1,0 +1,8 @@
+organization=chaimaebky
+projectKey=chaimaeBky_TO-DO_PFA
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.63343
+branch=frontend
+dashboardUrl=https://sonarcloud.io/dashboard?id=chaimaeBky_TO-DO_PFA&branch=frontend&resolved=false
+ceTaskId=AZbTD6ycm3R4doC0jVoe
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZbTD6ycm3R4doC0jVoe
