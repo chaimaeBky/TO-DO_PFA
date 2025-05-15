@@ -1,11 +1,11 @@
-name: Frontend CI/CD Pipeline
+name: Frontend CI/CD with SonarCloud
 
 on:
   push:
     branches: [master, frontendTest]
-    paths:  
-      - 'front/**'
-  pull_request:
+    paths: 
+      - 'front/**' 
+  pull_request: 
     branches: [master]
 
 jobs:
@@ -21,27 +21,22 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: 'front/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Run tests with coverage
-        run: |
-          npm run test:ci
-          # Vérification que le rapport de couverture existe
-          if [ ! -f "coverage/lcov.info" ]; then
-            echo "::error::Fichier coverage/lcov.info non trouvé"
-            exit 1
-          fi
+        run: npm run test:ci
 
   sonar-analysis:
     needs: test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: './front'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -49,13 +44,16 @@ jobs:
       - name: Run SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
+          projectBaseDir: './front'
           args: >
             -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
             -Dsonar.organization=chaimaebky
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.exclusions=**/node_modules/**,**/static/**,tests/**
+            -Dsonar.javascript.lcov.reportPaths=coverage/Icov-report/lcov.info
+            -Dsonar.testExecutionReportPaths=test-results.xml
+            -Dsonar.exclusions=**/node_modules/**,**/static/**,front/tests/**/*.{js,jsx}
             -Dsonar.qualitygate.wait=true
 
   build:
@@ -66,44 +64,68 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
       - name: Install and build
         working-directory: './front'
         run: |
           npm ci
           npm run build
-
       - uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: front/dist/
+
+  # ... (rest of your docker-push and deploy jobs)
+  docker-push:
+    needs: [test, build]
+    if: github.ref == 'refs/heads/master'  # Exécution uniquement sur master
+    runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Build and Push Backend
+        working-directory: ./back
+        run: |
+          docker build -t $DOCKERHUB_USERNAME/to-do_pfa-back:latest .
+          docker push $DOCKERHUB_USERNAME/to-do_pfa-back:latest
+
+      - name: Build and Push Frontend
+        working-directory: ./front
+        run: |
+          docker build -t $DOCKERHUB_USERNAME/to-do_pfa-front:latest .
+          docker push $DOCKERHUB_USERNAME/to-do_pfa-front:latest
 
   deploy:
     needs: build
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
           name: frontend-build
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Determine environment
         id: env
         run: |
           if [ "$GITHUB_REF" == "refs/heads/master" ]; then
-            echo "SERVER_IP=${{ secrets.PRODUCTION_SERVER_IP }}" >> $GITHUB_ENV
+            echo "ENV=production" >> $GITHUB_ENV
             echo "Deploying to production"
-          else
-            echo "SERVER_IP=${{ secrets.STAGING_SERVER_IP }}" >> $GITHUB_ENV
+          elif [ "$GITHUB_REF" == "refs/heads/frontendTest" ]; then
+            echo "ENV=staging" >> $GITHUB_ENV
             echo "Deploying to staging"
           fi
-
-      - name: Deploy to server
+      - name: Deploy
         run: |
-          scp -o StrictHostKeyChecking=no -r ./dist ubuntu@$SERVER_IP:/var/www/html/
-          ssh ubuntu@$SERVER_IP "sudo systemctl restart nginx"
+          if [ "$ENV" == "production" ]; then
+            echo "Ajoutez ici vos commandes de déploiement PRODUCTION"
+            # Ex: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+          elif [ "$ENV" == "staging" ]; then
+            echo "Ajoutez ici vos commandes de déploiement STAGING"
+            # Ex: vercel --token ${{ secrets.VERCEL_TOKEN }}
+          fi
