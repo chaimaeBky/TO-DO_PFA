@@ -29,6 +29,37 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:ci
 
+      - name: Convert test results to SonarQube format
+        run: |
+          # Installation des dépendances nécessaires
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
+          
+          # Conversion du format JUnit vers le format SonarQube
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > test-results-sonar.xml
+          echo '<testExecutions version="1">' >> test-results-sonar.xml
+          
+          # Traitement de chaque fichier de test
+          for file in $(find . -name "*.test.jsx"); do
+            filepath=${file#./}
+            echo "  <file path=\"$filepath\">" >> test-results-sonar.xml
+            
+            # Extraction des cas de test depuis le fichier JUnit original
+            xmllint --xpath "//testsuite[@file=\"$filepath\"]/testcase" test-results.xml | \
+            while read -r testcase; do
+              name=$(echo "$testcase" | grep -o 'name="[^"]*"' | cut -d'"' -f2)
+              time=$(echo "$testcase" | grep -o 'time="[^"]*"' | cut -d'"' -f2)
+              echo "    <testCase name=\"$name\" duration=\"$time\"/>" >> test-results-sonar.xml
+            done
+            
+            echo "  </file>" >> test-results-sonar.xml
+          done
+          
+          echo '</testExecutions>' >> test-results-sonar.xml
+          
+          # Vérification du fichier généré
+          xmllint --noout test-results-sonar.xml
+
   sonar-analysis:
     needs: test
     runs-on: ubuntu-latest
@@ -52,7 +83,7 @@ jobs:
             -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
             -Dsonar.organization=chaimaebky
             -Dsonar.javascript.lcov.reportPaths=coverage/Icov-report/lcov.info
-            -Dsonar.testExecutionReportPaths=test-results.xml
+            -Dsonar.testExecutionReportPaths=test-results-sonar.xml
             -Dsonar.exclusions=**/node_modules/**,**/static/**,front/tests/**/*.{js,jsx}
             -Dsonar.qualitygate.wait=true
 
@@ -74,10 +105,9 @@ jobs:
           name: frontend-build
           path: front/dist/
 
-  # ... (rest of your docker-push and deploy jobs)
   docker-push:
     needs: [test, build]
-    if: github.ref == 'refs/heads/master'  # Exécution uniquement sur master
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -93,7 +123,6 @@ jobs:
         run: |
           docker build -t $DOCKERHUB_USERNAME/to-do_pfa-back:latest .
           docker push $DOCKERHUB_USERNAME/to-do_pfa-back:latest
-
       - name: Build and Push Frontend
         working-directory: ./front
         run: |
@@ -124,8 +153,6 @@ jobs:
         run: |
           if [ "$ENV" == "production" ]; then
             echo "Ajoutez ici vos commandes de déploiement PRODUCTION"
-            # Ex: vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
           elif [ "$ENV" == "staging" ]; then
             echo "Ajoutez ici vos commandes de déploiement STAGING"
-            # Ex: vercel --token ${{ secrets.VERCEL_TOKEN }}
           fi
