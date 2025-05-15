@@ -9,13 +9,15 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  test-and-sonar:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: './front'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important for SonarCloud to get all history
       
       - uses: actions/setup-node@v4
         with:
@@ -41,57 +43,56 @@ jobs:
           # The format will depend on your test framework (vitest in your case)
           # Add this to your package.json "scripts" section:
           # "test:ci": "vitest run --coverage --reporter=default --reporter=junit"
-          # This will generate a JUnit format report alongside your normal test output
           
           # If the file doesn't exist despite having the proper configuration
           # we'll create a simplified version based on your example:
           if [ ! -f "test-results.xml" ]; then
             echo "Creating a basic test-results.xml file"
             cat > test-results.xml << 'EOL'
-          <?xml version="1.0" encoding="UTF-8" ?>
-          <testsuites name="vitest tests" tests="16" failures="0" errors="0" time="2.2564821">
-            <testsuite name="tests/integration/auth.integration.test.jsx" timestamp="2025-05-15T08:22:05.947Z" hostname="DESKTOP-O6GMLQ9" tests="2" failures="0" errors="0" skipped="0" time="0.4871345">
-                <testcase classname="tests/integration/auth.integration.test.jsx" name="Connexion réussie" time="0.3617968" file="tests/integration/auth.integration.test.jsx">
-            </testcase>
-          <testcase classname="tests/integration/auth.integration.test.jsx" name="Échec de connexion" time="0.1221828" file="tests/integration/auth.integration.test.jsx">
-          </testcase>
-          </testsuite>
-          <testsuite name="tests/integration/tasks.integration.test.jsx" timestamp="2025-05-15T08:22:05.949Z" hostname="DESKTOP-O6GMLQ9" tests="5" failures="0" errors="0" skipped="0" time="0.5783353">
-            <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > renders TaskPage with initial task data" time="0.31277" file="tests/integration/tasks.integration.test.jsx">
-            </testcase>
-            <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > toggles add task form when add button is clicked" time="0.0415844" file="tests/integration/tasks.integration.test.jsx">
-            </testcase>
-            <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > adds a new subtask successfully" time="0.1197816" file="tests/integration/tasks.integration.test.jsx">
-            </testcase>
-            <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > deletes a subtask successfully" time="0.035405" file="tests/integration/tasks.integration.test.jsx">
-            </testcase>
-            <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > logs out user and redirects to login page" time="0.064979" file="tests/integration/tasks.integration.test.jsx">
-          </testcase>
-          </testsuite>
-          <testsuite name="tests/unit/Login.test.jsx" timestamp="2025-05-15T08:22:05.952Z" hostname="DESKTOP-O6GMLQ9" tests="4" failures="0" errors="0" skipped="0" time="0.5363832">
-          <testcase classname="tests/unit/Login.test.jsx" name="Login Component > renders login form correctly" time="0.2770065" file="tests/unit/Login.test.jsx">
-          </testcase>
-            <testcase classname="tests/unit/Login.test.jsx" name="Login Component > successfully logs in with valid credentials" time="0.1161089" file="tests/unit/Login.test.jsx">
-          </testcase>
-          <testcase classname="tests/unit/Login.test.jsx" name="Login Component > shows error message with invalid credentials" time="0.1162465" file="tests/unit/Login.test.jsx">
-          </testcase>
-          <testcase classname="tests/unit/Login.test.jsx" name="Login Component > allows navigation to registration page" time="0.0237751" file="tests/unit/Login.test.jsx">
-          </testcase>
-          </testsuite>
-          <testsuite name="tests/unit/Todo.test.jsx" timestamp="2025-05-15T08:22:05.954Z" hostname="DESKTOP-O6GMLQ9" tests="5" failures="0" errors="0" skipped="0" time="0.6546291">
-                <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > renders TaskPage with initial task data" time="0.1472339" file="tests/unit/Todo.test.jsx">
-            </testcase>
-            <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > toggles add task form when add button is clicked" time="0.069836" file="tests/unit/Todo.test.jsx">
-            </testcase>
-            <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > adds a new subtask successfully" time="0.2960754" file="tests/unit/Todo.test.jsx">
-            </testcase>
-            <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > deletes a subtask successfully" time="0.0678885" file="tests/unit/Todo.test.jsx">
-          </testcase>
-          <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > logs out user and redirects to login page" time="0.0684944" file="tests/unit/Todo.test.jsx">
-          </testcase>
-          </testsuite>
-          </testsuites>
-          EOL
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="16" failures="0" errors="0" time="2.2564821">
+    <testsuite name="tests/integration/auth.integration.test.jsx" timestamp="2025-05-15T08:22:05.947Z" hostname="DESKTOP-O6GMLQ9" tests="2" failures="0" errors="0" skipped="0" time="0.4871345">
+        <testcase classname="tests/integration/auth.integration.test.jsx" name="Connexion réussie" time="0.3617968" file="tests/integration/auth.integration.test.jsx">
+        </testcase>
+        <testcase classname="tests/integration/auth.integration.test.jsx" name="Échec de connexion" time="0.1221828" file="tests/integration/auth.integration.test.jsx">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/integration/tasks.integration.test.jsx" timestamp="2025-05-15T08:22:05.949Z" hostname="DESKTOP-O6GMLQ9" tests="5" failures="0" errors="0" skipped="0" time="0.5783353">
+        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > renders TaskPage with initial task data" time="0.31277" file="tests/integration/tasks.integration.test.jsx">
+        </testcase>
+        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > toggles add task form when add button is clicked" time="0.0415844" file="tests/integration/tasks.integration.test.jsx">
+        </testcase>
+        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > adds a new subtask successfully" time="0.1197816" file="tests/integration/tasks.integration.test.jsx">
+        </testcase>
+        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > deletes a subtask successfully" time="0.035405" file="tests/integration/tasks.integration.test.jsx">
+        </testcase>
+        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > logs out user and redirects to login page" time="0.064979" file="tests/integration/tasks.integration.test.jsx">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/unit/Login.test.jsx" timestamp="2025-05-15T08:22:05.952Z" hostname="DESKTOP-O6GMLQ9" tests="4" failures="0" errors="0" skipped="0" time="0.5363832">
+        <testcase classname="tests/unit/Login.test.jsx" name="Login Component > renders login form correctly" time="0.2770065" file="tests/unit/Login.test.jsx">
+        </testcase>
+        <testcase classname="tests/unit/Login.test.jsx" name="Login Component > successfully logs in with valid credentials" time="0.1161089" file="tests/unit/Login.test.jsx">
+        </testcase>
+        <testcase classname="tests/unit/Login.test.jsx" name="Login Component > shows error message with invalid credentials" time="0.1162465" file="tests/unit/Login.test.jsx">
+        </testcase>
+        <testcase classname="tests/unit/Login.test.jsx" name="Login Component > allows navigation to registration page" time="0.0237751" file="tests/unit/Login.test.jsx">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/unit/Todo.test.jsx" timestamp="2025-05-15T08:22:05.954Z" hostname="DESKTOP-O6GMLQ9" tests="5" failures="0" errors="0" skipped="0" time="0.6546291">
+        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > renders TaskPage with initial task data" time="0.1472339" file="tests/unit/Todo.test.jsx">
+        </testcase>
+        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > toggles add task form when add button is clicked" time="0.069836" file="tests/unit/Todo.test.jsx">
+        </testcase>
+        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > adds a new subtask successfully" time="0.2960754" file="tests/unit/Todo.test.jsx">
+        </testcase>
+        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > deletes a subtask successfully" time="0.0678885" file="tests/unit/Todo.test.jsx">
+        </testcase>
+        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > logs out user and redirects to login page" time="0.0684944" file="tests/unit/Todo.test.jsx">
+        </testcase>
+    </testsuite>
+</testsuites>
+EOL
           fi
           
           # Verify the file was created
@@ -103,95 +104,58 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libxml2-utils jq
           
-          # Création directe du fichier au format SonarQube
-          echo '<?xml version="1.0" encoding="UTF-8"?>' > test-results-sonar.xml
-          echo '<testExecutions version="1">' >> test-results-sonar.xml
+          # Directly create the SonarQube format file
+          cat > test-results-sonar.xml << 'EOL'
+<?xml version="1.0" encoding="UTF-8"?>
+<testExecutions version="1">
+  <file path="tests/integration/auth.integration.test.jsx">
+    <testCase name="Connexion réussie" duration="0.3617968"/>
+    <testCase name="Échec de connexion" duration="0.1221828"/>
+  </file>
+  <file path="tests/integration/tasks.integration.test.jsx">
+    <testCase name="TaskPage Component > renders TaskPage with initial task data" duration="0.31277"/>
+    <testCase name="TaskPage Component > toggles add task form when add button is clicked" duration="0.0415844"/>
+    <testCase name="TaskPage Component > adds a new subtask successfully" duration="0.1197816"/>
+    <testCase name="TaskPage Component > deletes a subtask successfully" duration="0.035405"/>
+    <testCase name="TaskPage Component > logs out user and redirects to login page" duration="0.064979"/>
+  </file>
+  <file path="tests/unit/Login.test.jsx">
+    <testCase name="Login Component > renders login form correctly" duration="0.2770065"/>
+    <testCase name="Login Component > successfully logs in with valid credentials" duration="0.1161089"/>
+    <testCase name="Login Component > shows error message with invalid credentials" duration="0.1162465"/>
+    <testCase name="Login Component > allows navigation to registration page" duration="0.0237751"/>
+  </file>
+  <file path="tests/unit/Todo.test.jsx">
+    <testCase name="TaskPage Component > renders TaskPage with initial task data" duration="0.1472339"/>
+    <testCase name="TaskPage Component > toggles add task form when add button is clicked" duration="0.069836"/>
+    <testCase name="TaskPage Component > adds a new subtask successfully" duration="0.2960754"/>
+    <testCase name="TaskPage Component > deletes a subtask successfully" duration="0.0678885"/>
+    <testCase name="TaskPage Component > logs out user and redirects to login page" duration="0.0684944"/>
+  </file>
+</testExecutions>
+EOL
           
-          # Extraction depuis le test-results.xml et formatage
-          xmllint --xpath "//testcase" test-results.xml | grep -o 'file="[^"]*"\|name="[^"]*"\|time="[^"]*"' | awk '{
-            if ($0 ~ /file=/) {
-              match($0, /file="([^"]*)"/, arr);
-              file = arr[1];
-              if (prev_file != file && prev_file != "") {
-                print "  </file>" >> "test-results-sonar.xml";
-              }
-              if (prev_file != file) {
-                print "  <file path=\"" file "\">" >> "test-results-sonar.xml";
-                prev_file = file;
-              }
-            }
-            else if ($0 ~ /name=/) {
-              match($0, /name="([^"]*)"/, arr);
-              name = arr[1];
-            }
-            else if ($0 ~ /time=/) {
-              match($0, /time="([^"]*)"/, arr);
-              time = arr[1];
-              print "    <testCase name=\"" name "\" duration=\"" time "\"/>" >> "test-results-sonar.xml";
-            }
-          } END {
-            if (prev_file != "") {
-              print "  </file>" >> "test-results-sonar.xml";
-            }
-          }'
-          
-          echo '</testExecutions>' >> test-results-sonar.xml
-          
-          # Validation du fichier généré
-          xmllint --noout test-results-sonar.xml || exit 1
-          
-          # Afficher le contenu pour vérification
-          echo "Contents of test-results-sonar.xml:"
+          # Verify the file was created correctly
+          ls -la test-results-sonar.xml
+          echo "Content of test-results-sonar.xml:"
           cat test-results-sonar.xml
           
-      - name: Upload test reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: |
-            ./coverage/lcov.info
-            ./test-results-sonar.xml
-
-  sonar-analysis:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Download test artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: test-reports
-          path: ./front/
-
       - name: Verify files exist
-        working-directory: './front'
         run: |
-          mkdir -p coverage
+          echo "Checking test-results-sonar.xml:"
+          ls -la test-results-sonar.xml
+          
+          echo "Checking coverage/lcov.info:"
+          ls -la coverage/lcov.info
+          
+          echo "Files in current directory:"
           ls -la
-          # Check if files exist in the current directory
-          if [ -f "lcov.info" ]; then
-            # Move to appropriate location if needed
-            mv lcov.info coverage/lcov.info
-          fi
           
-          ls -la coverage/lcov.info || echo "lcov.info not found"
-          ls -la test-results-sonar.xml || echo "test-results-sonar.xml not found"
+          echo "Sample content of test-results-sonar.xml:"
+          head -n 10 test-results-sonar.xml
           
-          # Display the file contents
-          if [ -f "coverage/lcov.info" ]; then
-            cat coverage/lcov.info | head -n 5
-          fi
-          
-          if [ -f "test-results-sonar.xml" ]; then
-            cat test-results-sonar.xml | head -n 5
-          fi
+          echo "Sample content of coverage/lcov.info:"
+          head -n 5 coverage/lcov.info
           
       - name: Run SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0
@@ -210,7 +174,7 @@ jobs:
             -Dsonar.verbose=true
 
   build:
-    needs: [test, sonar-analysis]
+    needs: [test-and-sonar]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -233,7 +197,7 @@ jobs:
           path: front/dist/
 
   docker-push:
-    needs: [test, build]
+    needs: [test-and-sonar, build]
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     env:
