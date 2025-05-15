@@ -29,32 +29,32 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:ci
 
- sonar-analysis:
-  needs: test
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+  sonar-analysis:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
-    - name: Run SonarCloud Scan
-      uses: SonarSource/sonarqube-scan-action@v5.0.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        projectBaseDir: './front'
-        args: >
-          -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
-          -Dsonar.organization=chaimaebky
-          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-          -Dsonar.testExecutionReportPaths=test-results.xml
-          -Dsonar.exclusions=**/node_modules/**,**/static/**,front/tests/**
-          -Dsonar.qualitygate.wait=true
+      - name: Run SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: './front'
+          args: >
+            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
+            -Dsonar.organization=chaimaebky
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.testExecutionReportPaths=test-results.xml
+            -Dsonar.exclusions=**/node_modules/**,**/static/**,front/tests/**
+            -Dsonar.qualitygate.wait=true
 
   build:
     needs: [test, sonar-analysis]
@@ -74,7 +74,6 @@ jobs:
           name: frontend-build
           path: front/dist/
 
-  # ... (rest of your docker-push and deploy jobs)
   docker-push:
     needs: [test, build]
     if: github.ref == 'refs/heads/master'  # Exécution uniquement sur master
@@ -120,6 +119,7 @@ jobs:
             echo "ENV=staging" >> $GITHUB_ENV
             echo "Deploying to staging"
           fi
+          
       - name: Deploy
         run: |
           if [ "$ENV" == "production" ]; then
