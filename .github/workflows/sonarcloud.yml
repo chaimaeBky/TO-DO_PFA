@@ -2,7 +2,7 @@ name: SonarCloud Analysis
 
 on:
   push:
-    branches: [main, master, testBack]  # Adjust to match your branch names
+    branches: [main, master, testBack]  # Adjust to match your branch names 
   pull_request:
     branches: [main, master, testBack]
 
