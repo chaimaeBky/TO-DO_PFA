@@ -1,29 +1,26 @@
-name: Frontend CI/CD with SonarCloud
+name: Frontend CI/CD Pipeline
 
 on:
   push:
     branches: [master, frontendTest]
     paths:  
-      - 'front/**' 
-  pull_request: 
+      - 'front/**'
+  pull_request:
     branches: [master]
 
 jobs:
-  test-and-sonar:
+  test:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: './front'
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Important for SonarCloud to get all history
       
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 'front/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -31,206 +28,64 @@ jobs:
       - name: Run tests with coverage
         run: |
           npm run test:ci
-          # Vérification que le rapport lcov est généré
+          # Vérification que le rapport de couverture existe
           if [ ! -f "coverage/lcov.info" ]; then
-            echo "::error::Le fichier coverage/lcov.info n'a pas été généré"
+            echo "::error::Fichier coverage/lcov.info non trouvé"
             exit 1
           fi
-          
-      - name: Create JUnit test report
-        run: |
-          # Create test-results.xml file from your test results
-          # The format will depend on your test framework (vitest in your case)
-          # Add this to your package.json "scripts" section:
-          # "test:ci": "vitest run --coverage --reporter=default --reporter=junit"
-          
-          # If the file doesn't exist despite having the proper configuration
-          # we'll create a simplified version based on your example:
-          if [ ! -f "test-results.xml" ]; then
-            echo "Creating a basic test-results.xml file"
-            cat > test-results.xml << 'EOL'
-           <?xml version="1.0" encoding="UTF-8" ?>
-           <testsuites name="vitest tests" tests="16" failures="0" errors="0" time="2.2564821">
-           <testsuite name="tests/integration/auth.integration.test.jsx" timestamp="2025-05-15T08:22:05.947Z" hostname="DESKTOP-O6GMLQ9" tests="2" failures="0" errors="0" skipped="0" time="0.4871345">
-           <testcase classname="tests/integration/auth.integration.test.jsx" name="Connexion réussie" time="0.3617968" file="tests/integration/auth.integration.test.jsx">
-          </testcase>
-          <testcase classname="tests/integration/auth.integration.test.jsx" name="Échec de connexion" time="0.1221828" file="tests/integration/auth.integration.test.jsx">
-          </testcase>
-           </testsuite>
-          <testsuite name="tests/integration/tasks.integration.test.jsx" timestamp="2025-05-15T08:22:05.949Z" hostname="DESKTOP-O6GMLQ9" tests="5" failures="0" errors="0" skipped="0" time="0.5783353">
-          <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > renders TaskPage with initial task data" time="0.31277" file="tests/integration/tasks.integration.test.jsx">
-          </testcase>
-          <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > toggles add task form when add button is clicked" time="0.0415844" file="tests/integration/tasks.integration.test.jsx">
-          </testcase>
-          <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > adds a new subtask successfully" time="0.1197816" file="tests/integration/tasks.integration.test.jsx">
-          </testcase>
-          <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > deletes a subtask successfully" time="0.035405" file="tests/integration/tasks.integration.test.jsx">
-          </testcase>
-          <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component > logs out user and redirects to login page" time="0.064979" file="tests/integration/tasks.integration.test.jsx">
-          </testcase>
-          </testsuite>
-          <testsuite name="tests/unit/Login.test.jsx" timestamp="2025-05-15T08:22:05.952Z" hostname="DESKTOP-O6GMLQ9" tests="4" failures="0" errors="0" skipped="0" time="0.5363832">
-          <testcase classname="tests/unit/Login.test.jsx" name="Login Component > renders login form correctly" time="0.2770065" file="tests/unit/Login.test.jsx">
-           </testcase>
-            <testcase classname="tests/unit/Login.test.jsx" name="Login Component > successfully logs in with valid credentials" time="0.1161089" file="tests/unit/Login.test.jsx">
-           </testcase>
-            <testcase classname="tests/unit/Login.test.jsx" name="Login Component > shows error message with invalid credentials" time="0.1162465" file="tests/unit/Login.test.jsx">
-           </testcase>
-           <testcase classname="tests/unit/Login.test.jsx" name="Login Component > allows navigation to registration page" time="0.0237751" file="tests/unit/Login.test.jsx">
-           </testcase>
-           </testsuite>
-           <testsuite name="tests/unit/Todo.test.jsx" timestamp="2025-05-15T08:22:05.954Z" hostname="DESKTOP-O6GMLQ9" tests="5" failures="0" errors="0" skipped="0" time="0.6546291">
-              <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > renders TaskPage with initial task data" time="0.1472339" file="tests/unit/Todo.test.jsx">
-           </testcase>
-          <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > toggles add task form when add button is clicked" time="0.069836" file="tests/unit/Todo.test.jsx">
-           </testcase>
-           <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > adds a new subtask successfully" time="0.2960754" file="tests/unit/Todo.test.jsx">
-           </testcase>
-           <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > deletes a subtask successfully" time="0.0678885" file="tests/unit/Todo.test.jsx">
-           </testcase>
-            <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component > logs out user and redirects to login page" time="0.0684944" file="tests/unit/Todo.test.jsx">
-            </testcase>
-             </testsuite>
-          </testsuites>
-          EOL
-          fi
-          
-          # Verify the file was created
-          ls -la test-results.xml
 
-      - name: Create SonarQube test report
-        run: |
-          # Installation des dépendances nécessaires
-          sudo apt-get update
-          sudo apt-get install -y libxml2-utils jq
-          
-          # Directly create the SonarQube format file
-          cat > test-results-sonar.xml << 'EOL'
-           <?xml version="1.0" encoding="UTF-8"?>
-           <testExecutions version="1">
-           <file path="tests/integration/auth.integration.test.jsx">
-              <testCase name="Connexion réussie" duration="0.3617968"/>
-             <testCase name="Échec de connexion" duration="0.1221828"/>
-              </file>
-             <file path="tests/integration/tasks.integration.test.jsx">
-              <testCase name="TaskPage Component > renders TaskPage with initial task data" duration="0.31277"/>
-           <testCase name="TaskPage Component > toggles add task form when add button is clicked" duration="0.0415844"/>
-            <testCase name="TaskPage Component > adds a new subtask successfully" duration="0.1197816"/>
-                <testCase name="TaskPage Component > deletes a subtask successfully" duration="0.035405"/>
-              <testCase name="TaskPage Component > logs out user and redirects to login page" duration="0.064979"/>
-           </file>
-              <file path="tests/unit/Login.test.jsx">
-           <testCase name="Login Component > renders login form correctly" duration="0.2770065"/>
-             <testCase name="Login Component > successfully logs in with valid credentials" duration="0.1161089"/>
-                <testCase name="Login Component > shows error message with invalid credentials" duration="0.1162465"/>
-             <testCase name="Login Component > allows navigation to registration page" duration="0.0237751"/>
-           </file>
-              <file path="tests/unit/Todo.test.jsx">
-                 <testCase name="TaskPage Component > renders TaskPage with initial task data" duration="0.1472339"/>
-                    <testCase name="TaskPage Component > toggles add task form when add button is clicked" duration="0.069836"/>
-                 <testCase name="TaskPage Component > adds a new subtask successfully" duration="0.2960754"/>
-                <testCase name="TaskPage Component > deletes a subtask successfully" duration="0.0678885"/>
-                    <testCase name="TaskPage Component > logs out user and redirects to login page" duration="0.0684944"/>
-                       </file>
-             </testExecutions>
-          EOL
-          
-          # Verify the file was created correctly
-          ls -la test-results-sonar.xml
-          echo "Content of test-results-sonar.xml:"
-          cat test-results-sonar.xml
-          
-      - name: Verify files exist
-        run: |
-          echo "Checking test-results-sonar.xml:"
-          ls -la test-results-sonar.xml
-          
-          echo "Checking coverage/lcov.info:"
-          ls -la coverage/lcov.info
-          
-          echo "Files in current directory:"
-          ls -la
-          
-          echo "Sample content of test-results-sonar.xml:"
-          head -n 10 test-results-sonar.xml
-          
-          echo "Sample content of coverage/lcov.info:"
-          head -n 5 coverage/lcov.info
-          
+  sonar-analysis:
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: './front'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Run SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: './front'
           args: >
             -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
             -Dsonar.organization=chaimaebky
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.exclusions=**/node_modules/**,**/static/**,tests/**/*.{js,jsx}
+            -Dsonar.exclusions=**/node_modules/**,**/static/**,tests/**
             -Dsonar.qualitygate.wait=true
-            -Dsonar.verbose=true
 
   build:
-    needs: [test-and-sonar]
+    needs: [test, sonar-analysis]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'front/package-lock.json'
-
+      
       - name: Install and build
         working-directory: './front'
         run: |
           npm ci
           npm run build
-          
+
       - uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: front/dist/
 
-  docker-push:
-    needs: [test-and-sonar, build]
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      IMAGE_NAME: to-do_pfa-front
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Login to Docker Hub
-        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
-      - name: Build and Push Frontend
-        working-directory: ./front
-        run: |
-          # Récupération de la version depuis package.json
-          VERSION=$(jq -r '.version' package.json)
-          
-          # Construction et push des images
-          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:latest .
-          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
-          
-          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:$VERSION .
-          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:$VERSION
   deploy:
-    needs: [build, docker-push]
+    needs: build
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
     runs-on: ubuntu-latest
     steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-build
-          path: ./front/dist
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0
@@ -241,18 +96,14 @@ jobs:
         id: env
         run: |
           if [ "$GITHUB_REF" == "refs/heads/master" ]; then
-            echo "ENV=production" >> $GITHUB_ENV
             echo "SERVER_IP=${{ secrets.PRODUCTION_SERVER_IP }}" >> $GITHUB_ENV
             echo "Deploying to production"
-          elif [ "$GITHUB_REF" == "refs/heads/frontendTest" ]; then
-            echo "ENV=staging" >> $GITHUB_ENV
+          else
             echo "SERVER_IP=${{ secrets.STAGING_SERVER_IP }}" >> $GITHUB_ENV
             echo "Deploying to staging"
           fi
+
       - name: Deploy to server
         run: |
-          # Transfert des fichiers
-          scp -o StrictHostKeyChecking=no -r ./front/dist ubuntu@$SERVER_IP:/var/www/html/
-          
-          # Redémarrage du serveur web
+          scp -o StrictHostKeyChecking=no -r ./dist ubuntu@$SERVER_IP:/var/www/html/
           ssh ubuntu@$SERVER_IP "sudo systemctl restart nginx"
