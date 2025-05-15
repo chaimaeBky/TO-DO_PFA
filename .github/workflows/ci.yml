@@ -119,17 +119,19 @@ jobs:
           path: back/
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v5.0.0  # Version mise à jour
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=your-project-key
-            -Dsonar.organization=your-org
+            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA # Remplacez par votre vraie clé
+            -Dsonar.organization=chaimaebky  # Remplacez par votre organisation
             -Dsonar.javascript.lcov.reportPaths=front/coverage/lcov.info
             -Dsonar.python.coverage.reportPaths=back/coverage.xml
             -Dsonar.qualitygate.wait=true
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   deploy:
     needs: [build, sonarcloud]
