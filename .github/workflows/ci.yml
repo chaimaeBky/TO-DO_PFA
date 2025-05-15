@@ -1,12 +1,10 @@
-name: Frontend CI/CD with SonarCloud
+name: Frontend CI/CD
 
 on:
   push:
     branches: [master, frontendTest]
-    paths: 
-      - 'front/**'  
-  pull_request: 
-    branches: [master]    
+  pull_request:
+    branches: [master]
 
 jobs:
   test:
@@ -15,65 +13,56 @@ jobs:
       run:
         working-directory: './front'
     steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'front/package-lock.json'
 
       - name: Install dependencies
+        working-directory: './front'
         run: npm ci
 
-      - name: Run tests with coverage
-        run: npm run test:ci
+      - name: Run unit and integration tests
+        working-directory: './front'
+        run: npm test
 
-  # sonar-analysis:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-          
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
-
-  #     - name: Run SonarCloud Scan
-  #       uses: SonarSource/sonarqube-scan-action@v5.0.0
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #       with:
-  #         projectBaseDir: './front'
-  #         args: >
-  #           -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
-  #           -Dsonar.organization=chaimaebky
-  #           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-  #           -Dsonar.testExecutionReportPaths=test-results.xml
-  #           -Dsonar.exclusions=**/node_modules/**,**/static/**,front/tests/**
-  #           -Dsonar.qualitygate.wait=true
+      # - name: SonarCloud Scan
+      #   uses: SonarSource/sonarqube-scan-action@v5.0.0
+      #   env:
+      #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #          projectBaseDir: .
+      #          args: >
+      #            -Dsonar.qualitygate.wait=true
+      #            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+      #            -Dsonar.testExecutionReportPaths=test-results.xml
 
   build:
-    needs: [test, sonar-analysis]
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'front/package-lock.json'
       - name: Install and build
         working-directory: './front'
         run: |
           npm ci
           npm run build
-      - uses: actions/upload-artifact@v4
+      - name: Archive production build
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: front/dist/
-
   docker-push:
     needs: [test, build]
     if: github.ref == 'refs/heads/master'  # Exécution uniquement sur master
@@ -92,13 +81,11 @@ jobs:
         run: |
           docker build -t $DOCKERHUB_USERNAME/to-do_pfa-back:latest .
           docker push $DOCKERHUB_USERNAME/to-do_pfa-back:latest
-
       - name: Build and Push Frontend
         working-directory: ./front
         run: |
           docker build -t $DOCKERHUB_USERNAME/to-do_pfa-front:latest .
           docker push $DOCKERHUB_USERNAME/to-do_pfa-front:latest
-
   deploy:
     needs: build
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
@@ -119,7 +106,6 @@ jobs:
             echo "ENV=staging" >> $GITHUB_ENV
             echo "Deploying to staging"
           fi
-          
       - name: Deploy
         run: |
           if [ "$ENV" == "production" ]; then
