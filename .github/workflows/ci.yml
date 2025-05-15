@@ -4,7 +4,7 @@ on:
   push:
     branches: [master, frontendTest]
     paths: 
-      - 'front/**' 
+      - 'front/**'  
   pull_request: 
     branches: [master]
 
