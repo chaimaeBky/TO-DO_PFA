@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="16" failures="0" errors="0" time="2.2564821">
-    <testsuite name="tests/integration/auth.integration.test.jsx" timestamp="2025-05-15T08:22:05.947Z" hostname="DESKTOP-O6GMLQ9" tests="2" failures="0" errors="0" skipped="0" time="0.4871345">
-        <testcase classname="tests/integration/auth.integration.test.jsx" name="Connexion réussie" time="0.3617968">
+<testsuites>
+    <testsuite name="tests/integration/auth.integration.test.jsx" tests="2" failures="0" errors="0" skipped="0" time="0.4871345">
+        <testcase name="Connexion réussie" classname="tests.integration.auth.integration.test.jsx" time="0.3617968">
         </testcase>
-        <testcase classname="tests/integration/auth.integration.test.jsx" name="Échec de connexion" time="0.1221828">
-        </testcase>
-    </testsuite>
-    <testsuite name="tests/integration/tasks.integration.test.jsx" timestamp="2025-05-15T08:22:05.949Z" hostname="DESKTOP-O6GMLQ9" tests="5" failures="0" errors="0" skipped="0" time="0.5783353">
-        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component &gt; renders TaskPage with initial task data" time="0.31277">
-        </testcase>
-        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component &gt; toggles add task form when add button is clicked" time="0.0415844">
-        </testcase>
-        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component &gt; adds a new subtask successfully" time="0.1197816">
-        </testcase>
-        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component &gt; deletes a subtask successfully" time="0.035405">
-        </testcase>
-        <testcase classname="tests/integration/tasks.integration.test.jsx" name="TaskPage Component &gt; logs out user and redirects to login page" time="0.064979">
+        <testcase name="Échec de connexion" classname="tests.integration.auth.integration.test.jsx" time="0.1221828">
         </testcase>
     </testsuite>
-    <testsuite name="tests/unit/Login.test.jsx" timestamp="2025-05-15T08:22:05.952Z" hostname="DESKTOP-O6GMLQ9" tests="4" failures="0" errors="0" skipped="0" time="0.5363832">
-        <testcase classname="tests/unit/Login.test.jsx" name="Login Component &gt; renders login form correctly" time="0.2770065">
+    <testsuite name="tests/integration/tasks.integration.test.jsx" tests="5" failures="0" errors="0" skipped="0" time="0.5783353">
+        <testcase name="TaskPage Component > renders TaskPage with initial task data" classname="tests.integration.tasks.integration.test.jsx" time="0.31277">
         </testcase>
-        <testcase classname="tests/unit/Login.test.jsx" name="Login Component &gt; successfully logs in with valid credentials" time="0.1161089">
+        <testcase name="TaskPage Component > toggles add task form when add button is clicked" classname="tests.integration.tasks.integration.test.jsx" time="0.0415844">
         </testcase>
-        <testcase classname="tests/unit/Login.test.jsx" name="Login Component &gt; shows error message with invalid credentials" time="0.1162465">
+        <testcase name="TaskPage Component > adds a new subtask successfully" classname="tests.integration.tasks.integration.test.jsx" time="0.1197816">
         </testcase>
-        <testcase classname="tests/unit/Login.test.jsx" name="Login Component &gt; allows navigation to registration page" time="0.0237751">
+        <testcase name="TaskPage Component > deletes a subtask successfully" classname="tests.integration.tasks.integration.test.jsx" time="0.035405">
+        </testcase>
+        <testcase name="TaskPage Component > logs out user and redirects to login page" classname="tests.integration.tasks.integration.test.jsx" time="0.064979">
         </testcase>
     </testsuite>
-    <testsuite name="tests/unit/Todo.test.jsx" timestamp="2025-05-15T08:22:05.954Z" hostname="DESKTOP-O6GMLQ9" tests="5" failures="0" errors="0" skipped="0" time="0.6546291">
-        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component &gt; renders TaskPage with initial task data" time="0.1472339">
+    <testsuite name="tests/unit/Login.test.jsx" tests="4" failures="0" errors="0" skipped="0" time="0.5363832">
+        <testcase name="Login Component > renders login form correctly" classname="tests.unit.Login.test.jsx" time="0.2770065">
         </testcase>
-        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component &gt; toggles add task form when add button is clicked" time="0.069836">
+        <testcase name="Login Component > successfully logs in with valid credentials" classname="tests.unit.Login.test.jsx" time="0.1161089">
         </testcase>
-        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component &gt; adds a new subtask successfully" time="0.2960754">
+        <testcase name="Login Component > shows error message with invalid credentials" classname="tests.unit.Login.test.jsx" time="0.1162465">
         </testcase>
-        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component &gt; deletes a subtask successfully" time="0.0678885">
+        <testcase name="Login Component > allows navigation to registration page" classname="tests.unit.Login.test.jsx" time="0.0237751">
         </testcase>
-        <testcase classname="tests/unit/Todo.test.jsx" name="TaskPage Component &gt; logs out user and redirects to login page" time="0.0684944">
+    </testsuite>
+    <testsuite name="tests/unit/Todo.test.jsx" tests="5" failures="0" errors="0" skipped="0" time="0.6546291">
+        <testcase name="TaskPage Component > renders TaskPage with initial task data" classname="tests.unit.Todo.test.jsx" time="0.1472339">
+        </testcase>
+        <testcase name="TaskPage Component > toggles add task form when add button is clicked" classname="tests.unit.Todo.test.jsx" time="0.069836">
+        </testcase>
+        <testcase name="TaskPage Component > adds a new subtask successfully" classname="tests.unit.Todo.test.jsx" time="0.2960754">
+        </testcase>
+        <testcase name="TaskPage Component > deletes a subtask successfully" classname="tests.unit.Todo.test.jsx" time="0.0678885">
+        </testcase>
+        <testcase name="TaskPage Component > logs out user and redirects to login page" classname="tests.unit.Todo.test.jsx" time="0.0684944">
         </testcase>
     </testsuite>
 </testsuites>
