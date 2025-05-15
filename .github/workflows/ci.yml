@@ -96,43 +96,55 @@ jobs:
         with:
           name: frontend-build
           path: front/dist/
-
   sonarcloud:
-    name: SonarCloud Analysis
-    needs: [frontend-test, backend-test]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+   name: SonarCloud Analysis
+   needs: [frontend-test, backend-test]
+   runs-on: ubuntu-latest
+   steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Nécessaire pour l'analyse des nouvelles modifications
 
-      - name: Download frontend coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-coverage
-          path: front/coverage/
+    - name: Download frontend coverage
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-coverage
+        path: front/coverage/
 
-      - name: Download backend coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-coverage
-          path: back/
+    - name: Download backend coverage
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-coverage
+        path: back/
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5.0.0  # Version mise à jour
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=chaimaeBky_TO-DO_PFA # Remplacez par votre vraie clé
-            -Dsonar.organization=chaimaebky  # Remplacez par votre organisation
-            -Dsonar.javascript.lcov.reportPaths=front/coverage/lcov.info
-            -Dsonar.python.coverage.reportPaths=back/coverage.xml
-            -Dsonar.qualitygate.wait=true
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarqube-scan-action@v5.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token généré automatiquement
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Token SonarCloud
+      with:
+        args: >
+          -Dsonar.projectKey=chaimaeBky_TO-DO_PFA
+          -Dsonar.organization=chaimaebky
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.javascript.lcov.reportPaths=front/coverage/lcov.info
+          -Dsonar.python.coverage.reportPaths=back/coverage.xml
+          -Dsonar.qualitygate.wait=true
+          -Dsonar.analysis.allowIncrementalAnalysis=true
+          -Dsonar.scm.provider=git
+          -Dsonar.sourceEncoding=UTF-8
+          -Dsonar.sources=front/src,back/
+          -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/test/**
+          -Dsonar.cpd.exclusions=**/test/**,**/mocks/**
+          -Dsonar.javascript.file.suffixes=.js,.jsx,.ts,.tsx,.vue
+          -Dsonar.python.file.suffixes=.py
+          -Dsonar.verbose=true
+          -Dsonar.projectVersion=1.0.${{ github.run_number }}
+          -Dsonar.projectDate=${{ github.event.head_commit.timestamp }}
+          -Dsonar.links.scm=${{ github.server_url }}/${{ github.repository }}
+          -Dsonar.links.ci=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          -Dsonar.links.issue=${{ github.server_url }}/${{ github.repository }}/issues
   deploy:
     needs: [build, sonarcloud]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
