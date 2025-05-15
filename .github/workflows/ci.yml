@@ -3,7 +3,7 @@ name: Frontend CI/CD with SonarCloud
 on:
   push:
     branches: [master, frontendTest]
-    paths: 
+    paths:  
       - 'front/**' 
   pull_request: 
     branches: [master]
