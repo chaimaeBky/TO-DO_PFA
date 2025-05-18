@@ -129,29 +129,33 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
   deploy:
-    needs: [build, sonarcloud]
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
+    needs: build
     runs-on: ubuntu-latest
+    environment: 
+      name: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
+    
     steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          name: frontend-build
+          name: frontend-build.zip
 
-      - name: Determine environment
-        id: env
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure
         run: |
-          if [ "$GITHUB_REF" == "refs/heads/master" ]; then
-            echo "ENV=production" >> $GITHUB_ENV
-            echo "Deploying to production"
-          elif [ "$GITHUB_REF" == "refs/heads/frontendTest" ]; then
-            echo "ENV=staging" >> $GITHUB_ENV
-            echo "Deploying to staging"
-          fi
-      - name: Deploy
-        run: |
-          if [ "$ENV" == "production" ]; then
-            echo "Add production deployment commands here"
-          elif [ "$ENV" == "staging" ]; then
-            echo "Add staging deployment commands here"
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            az webapp deploy \
+              --name ${{ secrets.PRODUCTION_APP_NAME }} \
+              --resource-group DevOps_ToDo_App \
+              --src-path frontend-build.zip \
+              --type zip
+          else
+            az webapp deploy \
+              --name ${{ secrets.STAGING_APP_NAME }} \
+              --resource-group DevOps_ToDo_App \
+              --src-path frontend-build.zip \
+              --type zip
           fi
