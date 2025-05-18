@@ -128,7 +128,7 @@ jobs:
             -Dsonar.qualitygate.wait=true
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-deploy:
+  deploy:
     needs: [build, sonarcloud]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/frontendTest'
     runs-on: ubuntu-latest
