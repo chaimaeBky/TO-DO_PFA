@@ -1,3 +1,4 @@
+permissions: read-all # Bloque toute action
 name: SonarCloud Analysis
 
 on:
