@@ -132,6 +132,20 @@ def deletedTaskId():
     save_task(tasks)
     return jsonify(tasks), 200
 
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+@app.route('/')
+def health_check():
+    return jsonify({
+        "status": "running",
+        "endpoints": {
+            "tasks": "/Tasks",
+            "users": "/Users",
+            "metrics": "/metrics"
+        }
+    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
