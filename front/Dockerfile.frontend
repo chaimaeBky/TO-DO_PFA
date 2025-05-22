@@ -1,22 +1,12 @@
-# Étape de construction
 FROM node:18-alpine AS builder
-
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-
-# La commande de build avec Vite
 RUN npm run build
 
-# Étape de production
 FROM nginx:alpine
-
-# Copiez depuis le dossier dist (Vite) au lieu de build
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Configuration Nginx pour les routes SPA
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
+EXPOSE 3002  # Must match nginx.conf
 CMD ["nginx", "-g", "daemon off;"]
